@@ -17,7 +17,13 @@ const ResourcesTab = ({ nation }) => {
     arableLand: '🌾',
     food: '🍞',
     energy: '⚡',
-    fuel: '⛽'
+    fuel: '⛽',
+    petroleo: '🛢️',
+    ferro: '⚙️',
+    ouro: '🏆',
+    cobre: '🔶',
+    terrasAraveis: '🌾',
+    agua: '💧'
   };
 
   const resourceNames = {
@@ -30,7 +36,13 @@ const ResourcesTab = ({ nation }) => {
     arableLand: 'Terra Arável',
     food: 'Alimentos',
     energy: 'Energia',
-    fuel: 'Combustível'
+    fuel: 'Combustível',
+    petroleo: 'Petróleo',
+    ferro: 'Ferro',
+    ouro: 'Ouro',
+    cobre: 'Cobre',
+    terrasAraveis: 'Terras Aráveis',
+    agua: 'Água'
   };
 
   const allResources = Object.keys(balance).sort();
@@ -86,7 +98,7 @@ const ResourcesTab = ({ nation }) => {
               <ul className="list-disc list-inside space-y-1 text-red-700">
                 {Object.entries(balance).filter(([_, v]) => v < 0).map(([resource, amount]) => (
                   <li key={resource}>
-                    <strong>{resourceNames[resource]}</strong>: Faltam {Math.abs(amount).toFixed(1)} unidades/mês
+                    <strong>{resourceNames[resource] || resource}</strong>: Faltam {Math.abs(amount).toFixed(1)} unidades/mês
                   </li>
                 ))}
               </ul>
@@ -121,9 +133,9 @@ const ResourcesTab = ({ nation }) => {
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl">{resourceIcons[resource]}</span>
+                    <span className="text-3xl">{resourceIcons[resource] || '📦'}</span>
                     <div>
-                      <h4 className="font-bold text-lg">{resourceNames[resource]}</h4>
+                      <h4 className="font-bold text-lg">{resourceNames[resource] || resource}</h4>
                       <p className="text-sm text-gray-600">
                         {isPositive && '✅ Exportando excedente'}
                         {isNegative && '⚠️ Importando faltante'}
@@ -201,10 +213,10 @@ const ResourcesTab = ({ nation }) => {
           {Object.entries(nation.territory.resources).map(([resource, amount]) => (
             <div key={resource} className="bg-gradient-to-br from-amber-50 to-yellow-50 p-4 rounded-lg border-2 border-amber-200">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">{resourceIcons[resource]}</span>
-                <span className="font-medium text-sm">{resourceNames[resource]}</span>
+                <span className="text-2xl">{resourceIcons[resource] || '📦'}</span>
+                <span className="font-medium text-sm">{resourceNames[resource] || resource}</span>
               </div>
-              <p className="text-2xl font-bold text-amber-700">{amount}</p>
+              <p className="text-2xl font-bold text-amber-700">{amount.toLocaleString()}</p>
               <p className="text-xs text-gray-600 mt-1">unidades/mês</p>
             </div>
           ))}
@@ -241,9 +253,15 @@ const getResourcePrice = (resource) => {
     energy: 30,
     fuel: 60,
     water: 5,
-    arableLand: 0
+    arableLand: 0,
+    petroleo: 100,
+    ferro: 50,
+    ouro: 500,
+    cobre: 40,
+    terrasAraveis: 0,
+    agua: 5
   };
-  return prices[resource] || 0;
+  return prices[resource] || 10;
 };
 
 export default ResourcesTab;

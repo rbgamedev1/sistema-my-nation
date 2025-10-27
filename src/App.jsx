@@ -12,6 +12,7 @@ import TerritoryTab from './views/TerritoryTab';
 import MinistriesTab from './views/MinistriesTab';
 import FinancesTab from './views/FinancesTab';
 import TechnologyTab from './views/TechnologyTab';
+import ResourcesTab from './views/ResourcesTab';
 
 const MyNation = () => {
   const {
@@ -103,12 +104,12 @@ const MyNation = () => {
       {/* Navigation */}
       <div className="bg-white shadow">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="flex gap-1">
-            {['overview', 'territory', 'ministries', 'technology', 'finances'].map(tab => (
+          <div className="flex gap-1 overflow-x-auto">
+            {['overview', 'territory', 'ministries', 'technology', 'resources', 'finances'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-3 font-medium transition ${
+                className={`px-4 py-3 font-medium transition whitespace-nowrap ${
                   activeTab === tab
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
@@ -118,6 +119,7 @@ const MyNation = () => {
                 {tab === 'territory' && '🗺️ Território'}
                 {tab === 'ministries' && '🏛️ Ministérios'}
                 {tab === 'technology' && '🔬 Tecnologia'}
+                {tab === 'resources' && '📦 Recursos'}
                 {tab === 'finances' && '💰 Finanças'}
               </button>
             ))}
@@ -159,6 +161,10 @@ const MyNation = () => {
             nation={nation}
             onStartResearch={startResearch}
           />
+        )}
+
+        {activeTab === 'resources' && (
+          <ResourcesTab nation={nation} />
         )}
 
         {activeTab === 'finances' && (

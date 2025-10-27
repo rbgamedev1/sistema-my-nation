@@ -26,11 +26,97 @@ export const generateTerritory = () => {
   return { x, y, size: Math.floor(Math.random() * 50) + 50, resources };
 };
 
-export const calculateFinances = (nation) => {
-  if (!nation) return { revenue: 0, expenses: 0, balance: 0 };
+// Calcula balanço de recursos (produção vs consumo)
+export const calculateResourceBalance = (nation) => {
+  const production = {};
+  const consumption = {};
+  const balance = {};
 
+  // Produção base do território
+  if (nation.territory?.resources) {
+    Object.entries(nation.territory.resources).forEach(([resource, amount]) => {
+      production[resource] = amount;
+    });
+  }
+
+  // Processar benfeitorias
+  nation.facilities.forEach(facility => {
+    // Produção de recursos
+    if (facility.resourceProduction) {
+      Object.entries(facility.resourceProduction).forEach(([resource, amount]) => {
+        production[resource] = (production[resource] || 0) + amount;
+      });
+    }
+
+    // Consumo de recursos
+    if (facility.resourceConsumption) {
+      Object.entries(facility.resourceConsumption).forEach(([resource, amount]) => {
+        consumption[resource] = (consumption[resource] || 0) + amount;
+      });
+    }
+  });
+
+  // Calcular balanço
+  const allResources = new Set([
+    ...Object.keys(production),
+    ...Object.keys(consumption)
+  ]);
+
+  allResources.forEach(resource => {
+    const prod = production[resource] || 0;
+    const cons = consumption[resource] || 0;
+    balance[resource] = prod - cons;
+  });
+
+  return { production, consumption, balance };
+};
+
+// Preços de mercado para recursos
+const RESOURCE_PRICES = {
+  oil: 100,
+  gas: 80,
+  steel: 50,
+  gold: 500,
+  copper: 40,
+  food: 20,
+  energy: 30,
+  fuel: 60,
+  water: 5,
+  arableLand: 0
+};
+
+export const calculateFinances = (nation) => {
+  if (!nation) return { 
+    revenue: 0, 
+    taxRevenue: 0,
+    resourceRevenue: 0,
+    expenses: 0, 
+    resourcePenalty: 0,
+    balance: 0 
+  };
+
+  // Receita de impostos
   const employedWorkers = nation.workers.common - nation.workers.employed;
-  const revenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.TAX_RATE;
+  const taxRevenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.TAX_RATE;
+  
+  // Calcular receita/penalidade de recursos
+  const { balance: resourceBalance } = calculateResourceBalance(nation);
+  let resourceRevenue = 0;
+  let resourcePenalty = 0;
+
+  Object.entries(resourceBalance).forEach(([resource, amount]) => {
+    const price = RESOURCE_PRICES[resource] || 0;
+    
+    if (amount > 0) {
+      // Excedente: vender 50% no mercado
+      resourceRevenue += (amount * 0.5) * price;
+    } else if (amount < 0) {
+      // Déficit: importar a preço cheio + 20% de taxa
+      resourcePenalty += Math.abs(amount) * price * 1.2;
+    }
+  });
+
+  const revenue = taxRevenue + resourceRevenue;
   
   let expenses = 0;
   
@@ -49,9 +135,15 @@ export const calculateFinances = (nation) => {
     });
   });
 
+  // Adicionar penalidade de recursos às despesas
+  expenses += resourcePenalty;
+
   return { 
-    revenue: Math.floor(revenue), 
-    expenses: Math.floor(expenses), 
+    revenue: Math.floor(revenue),
+    taxRevenue: Math.floor(taxRevenue),
+    resourceRevenue: Math.floor(resourceRevenue),
+    expenses: Math.floor(expenses),
+    resourcePenalty: Math.floor(resourcePenalty),
     balance: Math.floor(revenue - expenses) 
   };
 };
@@ -79,6 +171,11 @@ export const calculateHappiness = (nation) => {
   happiness += stats.health * 0.3;
   happiness += stats.security * 0.1;
   happiness += stats.food * 0.2;
+
+  // Penalidade por recursos em déficit
+  const { balance: resourceBalance } = calculateResourceBalance(nation);
+  const deficitCount = Object.values(resourceBalance).filter(v => v < 0).length;
+  happiness -= deficitCount * 5; // -5% por recurso em déficit
   
   return { happiness: Math.min(100, Math.max(0, happiness)), stats };
 };

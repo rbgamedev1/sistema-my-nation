@@ -221,6 +221,8 @@ export const useGameLogic = () => {
       cost: facilityData.cost,
       benefits: { ...(facilityData.benefits || {}) },
       researchSpeed: facilityData.researchSpeed || 0,
+      resourceConsumption: { ...(facilityData.resourceConsumption || {}) },
+      resourceProduction: { ...(facilityData.resourceProduction || {}) },
       jobs: facilityData.jobs.map(job => ({ 
         ...job, 
         filled: 0, 

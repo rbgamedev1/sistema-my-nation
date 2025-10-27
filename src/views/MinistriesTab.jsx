@@ -32,15 +32,15 @@ const MinistriesTab = ({
   return (
     <div className="space-y-6">
       {/* Create new ministry */}
-      {['educacao', 'saude', 'defesa', 'agricultura', 'minasEnergia', 'tecnologia'].some(type => 
+      {['educacao', 'saude', 'defesa', 'agricultura', 'industria', 'minasEnergia', 'tecnologia'].some(type => 
         !nation.ministries.find(m => m.type === type)
       ) && (
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-2xl font-bold mb-4">
             Criar Novo Ministério (Custo: R$ {GAME_CONFIG.MINISTRY_COST.toLocaleString()})
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-            {['educacao', 'saude', 'defesa', 'agricultura', 'minasEnergia', 'tecnologia'].map(type => {
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+            {['educacao', 'saude', 'defesa', 'agricultura', 'industria', 'minasEnergia', 'tecnologia'].map(type => {
               const exists = nation.ministries.find(m => m.type === type);
               if (exists) return null;
               
@@ -64,7 +64,7 @@ const MinistriesTab = ({
       {nation.ministries.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-2xl font-bold mb-4">Ministérios Ativos</h2>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
             {nation.ministries.map(ministry => (
               <button
                 key={ministry.id}
@@ -147,7 +147,7 @@ const MinistriesTab = ({
               {!ministry.minister && (
                 <button
                   onClick={() => {
-                    const salary = prompt('Salário mensal do ministro (mínimo R$ 5.000):', '5000');
+                    const salary = prompt('Salário mensal do ministro (mínimo R$ 5.000):', '10000');
                     if (salary && !isNaN(salary)) {
                       onHireMinister(ministry.id, parseInt(salary));
                     }
@@ -181,6 +181,11 @@ const MinistriesTab = ({
                               {key}: +{val}
                             </span>
                           ))}
+                        </div>
+                      )}
+                      {fac.resourceProduction && (
+                        <div className="text-xs mt-1 text-green-200">
+                          📦 Produz: {Object.keys(fac.resourceProduction).join(', ')}
                         </div>
                       )}
                     </button>
@@ -224,6 +229,9 @@ const MinistriesTab = ({
               <p className="text-gray-700">
                 Crie ministérios para começar a desenvolver sua nação. 
                 Cada ministério permite construir benfeitorias específicas.
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                💡 Custos aumentados: Ministérios agora custam R$ 500.000 e benfeitorias têm preços mais realistas.
               </p>
             </div>
           </div>
