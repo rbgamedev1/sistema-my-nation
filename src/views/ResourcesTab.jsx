@@ -1,4 +1,4 @@
-// src/views/ResourcesTab.jsx
+// src/views/ResourcesTab.jsx - COMPLETO CORRIGIDO
 
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -8,41 +8,43 @@ const ResourcesTab = ({ nation }) => {
   const { production, consumption, balance } = calculateResourceBalance(nation);
 
   const resourceIcons = {
-    water: '💧',
-    oil: '🛢️',
-    gas: '💨',
-    steel: '⚙️',
-    gold: '🏆',
-    copper: '🔶',
-    arableLand: '🌾',
-    food: '🍞',
-    energy: '⚡',
-    fuel: '⛽',
+    agua: '💧',
     petroleo: '🛢️',
+    gas: '💨',
     ferro: '⚙️',
     ouro: '🏆',
     cobre: '🔶',
     terrasAraveis: '🌾',
-    agua: '💧'
+    food: '🍞',
+    energy: '⚡',
+    fuel: '⛽',
+    madeira: '🪵',
+    furniture: '🪑',
+    fruits: '🍎',
+    vegetables: '🥕',
+    clothing: '👕',
+    medicine: '💊',
+    floresta: '🌲'
   };
 
   const resourceNames = {
-    water: 'Água',
-    oil: 'Petróleo',
-    gas: 'Gás Natural',
-    steel: 'Aço',
-    gold: 'Ouro',
-    copper: 'Cobre',
-    arableLand: 'Terra Arável',
-    food: 'Alimentos',
-    energy: 'Energia',
-    fuel: 'Combustível',
+    agua: 'Água',
     petroleo: 'Petróleo',
+    gas: 'Gás Natural',
     ferro: 'Ferro',
     ouro: 'Ouro',
     cobre: 'Cobre',
     terrasAraveis: 'Terras Aráveis',
-    agua: 'Água'
+    food: 'Alimentos',
+    energy: 'Energia',
+    fuel: 'Combustível',
+    madeira: 'Madeira',
+    furniture: 'Móveis',
+    fruits: 'Frutas',
+    vegetables: 'Vegetais',
+    clothing: 'Roupas',
+    medicine: 'Medicamentos',
+    floresta: 'Floresta'
   };
 
   const allResources = Object.keys(balance).sort();
@@ -68,12 +70,6 @@ const ResourcesTab = ({ nation }) => {
             <p className="text-sm text-gray-600">Recursos em Déficit</p>
             <p className="text-2xl font-bold text-red-600">
               {Object.values(balance).filter(v => v < 0).length}
-            </p>
-          </div>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Recursos Equilibrados</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {Object.values(balance).filter(v => v === 0).length}
             </p>
           </div>
           <div className="bg-purple-50 p-4 rounded-lg">
@@ -193,7 +189,7 @@ const ResourcesTab = ({ nation }) => {
 
                 {isNegative && (
                   <div className="mt-3 p-2 bg-red-100 rounded text-sm text-red-800">
-                    💸 Custo de importação: ~R$ {(Math.abs(bal) * getResourcePrice(resource)).toFixed(0)}/mês
+                    💸 Custo de importação: ~R$ {(Math.abs(bal) * getResourcePrice(resource) * 1.2).toFixed(0)}/mês
                   </div>
                 )}
               </div>
@@ -228,10 +224,10 @@ const ResourcesTab = ({ nation }) => {
         <h3 className="font-bold text-lg mb-2">💡 Gerenciamento de Recursos</h3>
         <ul className="space-y-2 text-sm text-gray-700">
           <li>• <strong>Água:</strong> Essencial para toda infraestrutura. Seu território gera naturalmente.</li>
-          <li>• <strong>Alimentos:</strong> Construa Fazendas Cooperativas em territórios com terras aráveis.</li>
+          <li>• <strong>Alimentos:</strong> Construa Fazendas em territórios com terras aráveis.</li>
           <li>• <strong>Energia:</strong> Construa Usinas de Energia. Consomem petróleo e água.</li>
           <li>• <strong>Petróleo/Gás:</strong> Construa Poços de Petróleo em territórios ricos neste recurso.</li>
-          <li>• <strong>Minérios:</strong> Construa Minas para extrair aço, ouro e cobre.</li>
+          <li>• <strong>Minérios:</strong> Construa Minas para extrair ferro, ouro e cobre.</li>
           <li>• <strong>Excedentes:</strong> 50% do excedente é automaticamente exportado gerando receita.</li>
           <li>• <strong>Déficit:</strong> Recursos em falta causam penalidades financeiras e reduzem felicidade.</li>
           <li>• <strong>Multiplayer:</strong> No futuro você poderá comercializar recursos com outras nações!</li>
@@ -244,22 +240,23 @@ const ResourcesTab = ({ nation }) => {
 // Preços de mercado
 const getResourcePrice = (resource) => {
   const prices = {
-    oil: 100,
-    gas: 80,
-    steel: 50,
-    gold: 500,
-    copper: 40,
-    food: 20,
-    energy: 30,
-    fuel: 60,
-    water: 5,
-    arableLand: 0,
     petroleo: 100,
+    gas: 80,
     ferro: 50,
     ouro: 500,
     cobre: 40,
+    food: 20,
+    energy: 30,
+    fuel: 60,
+    agua: 5,
     terrasAraveis: 0,
-    agua: 5
+    madeira: 30,
+    furniture: 80,
+    fruits: 25,
+    vegetables: 20,
+    clothing: 50,
+    medicine: 100,
+    floresta: 10
   };
   return prices[resource] || 10;
 };

@@ -1,4 +1,4 @@
-// src/utils/calculations.js
+// src/utils/calculations.js - COMPLETO CORRIGIDO
 
 import { GAME_CONFIG } from '../data/gameConfig';
 
@@ -73,16 +73,23 @@ export const calculateResourceBalance = (nation) => {
 
 // Preços de mercado para recursos
 const RESOURCE_PRICES = {
-  oil: 100,
+  petroleo: 100,
   gas: 80,
-  steel: 50,
-  gold: 500,
-  copper: 40,
+  ferro: 50,
+  ouro: 500,
+  cobre: 40,
   food: 20,
   energy: 30,
   fuel: 60,
-  water: 5,
-  arableLand: 0
+  agua: 5,
+  terrasAraveis: 0,
+  madeira: 30,
+  furniture: 80,
+  fruits: 25,
+  vegetables: 20,
+  clothing: 50,
+  medicine: 100,
+  floresta: 10
 };
 
 export const calculateFinances = (nation) => {
@@ -90,14 +97,15 @@ export const calculateFinances = (nation) => {
     revenue: 0, 
     taxRevenue: 0,
     resourceRevenue: 0,
-    expenses: 0, 
+    expenses: 0,
+    salaryExpenses: 0,
     resourcePenalty: 0,
     balance: 0 
   };
 
-  // Receita de impostos
-  const employedWorkers = nation.workers.common - nation.workers.employed;
-  const taxRevenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.TAX_RATE;
+  // Receita de impostos - APENAS EMPREGADOS PAGAM
+  const employedWorkers = nation.workers.employed;
+  const taxRevenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.EMPLOYMENT_TAX_RATE;
   
   // Calcular receita/penalidade de recursos
   const { balance: resourceBalance } = calculateResourceBalance(nation);
@@ -118,12 +126,12 @@ export const calculateFinances = (nation) => {
 
   const revenue = taxRevenue + resourceRevenue;
   
-  let expenses = 0;
+  let salaryExpenses = 0;
   
   // Despesas com ministros
   nation.ministries.forEach(ministry => {
     if (ministry.minister) {
-      expenses += ministry.minister.salary;
+      salaryExpenses += ministry.minister.salary;
     }
   });
   
@@ -131,18 +139,18 @@ export const calculateFinances = (nation) => {
   nation.facilities.forEach(facility => {
     facility.jobs.forEach(job => {
       const filled = job.filled || 0;
-      expenses += filled * (job.currentSalary || job.minSalary);
+      salaryExpenses += filled * (job.currentSalary || job.minSalary);
     });
   });
 
-  // Adicionar penalidade de recursos às despesas
-  expenses += resourcePenalty;
+  const expenses = salaryExpenses + resourcePenalty;
 
   return { 
     revenue: Math.floor(revenue),
     taxRevenue: Math.floor(taxRevenue),
     resourceRevenue: Math.floor(resourceRevenue),
     expenses: Math.floor(expenses),
+    salaryExpenses: Math.floor(salaryExpenses),
     resourcePenalty: Math.floor(resourcePenalty),
     balance: Math.floor(revenue - expenses) 
   };

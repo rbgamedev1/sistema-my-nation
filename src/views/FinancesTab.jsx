@@ -1,4 +1,4 @@
-// src/views/FinancesTab.jsx
+// src/views/FinancesTab.jsx - COMPLETO CORRIGIDO
 
 import React from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -126,7 +126,7 @@ const FinancesTab = ({ nation, finances }) => {
                 <div>
                   <span className="font-medium">⚠️ Importação de Recursos</span>
                   <p className="text-xs text-gray-600">
-                    Custo de recursos em déficit (+50% taxa)
+                    Custo de recursos em déficit (+20% taxa)
                   </p>
                 </div>
                 <span className="text-red-700 font-bold">
@@ -250,7 +250,7 @@ const FinancesTab = ({ nation, finances }) => {
         <ul className="space-y-2 text-sm text-gray-700">
           <li>• <strong>Desempregados não geram receita:</strong> Apenas trabalhadores empregados pagam impostos</li>
           <li>• <strong>Aumente salários:</strong> Salários mais altos atraem trabalhadores mais rapidamente</li>
-          <li>• <strong>Evite déficit de recursos:</strong> Importar recursos é 50% mais caro que o preço de mercado</li>
+          <li>• <strong>Evite déficit de recursos:</strong> Importar recursos é 20% mais caro que o preço de mercado</li>
           <li>• <strong>Invista em infraestrutura:</strong> Benfeitorias aumentam felicidade e criam empregos</li>
           <li>• <strong>Recursos excedentes:</strong> São armazenados automaticamente para venda futura</li>
           <li>• <strong>Mantenha reserva:</strong> Sempre tenha dinheiro suficiente para pelo menos 3 meses de despesas</li>

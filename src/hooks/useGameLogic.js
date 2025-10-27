@@ -1,4 +1,4 @@
-// src/hooks/useGameLogic.js
+// src/hooks/useGameLogic.js - COMPLETO CORRIGIDO
 
 import { useState } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -8,7 +8,8 @@ import {
   calculateFinances, 
   calculateHappiness,
   calculatePopulationGrowth,
-  autoFillJobs
+  autoFillJobs,
+  calculateResourceBalance
 } from '../utils/calculations';
 import { 
   TECHNOLOGIES, 
@@ -62,6 +63,7 @@ export const useGameLogic = () => {
       },
       ministries: [],
       facilities: [],
+      resourceStorage: {},
       technologies: {
         researching: [],
         researched: []
@@ -386,6 +388,17 @@ export const useGameLogic = () => {
     const populationGrowth = calculatePopulationGrowth(nation.population, happiness);
     const { updatedFacilities, newEmployed } = autoFillJobs(nation);
 
+    // Armazenar recursos excedentes
+    const { balance: resourceBalance } = calculateResourceBalance(nation);
+    const updatedResourceStorage = { ...(nation.resourceStorage || {}) };
+    
+    Object.entries(resourceBalance).forEach(([resource, amount]) => {
+      if (amount > 0) {
+        // Armazenar 50% do excedente (os outros 50% são vendidos)
+        updatedResourceStorage[resource] = (updatedResourceStorage[resource] || 0) + (amount * 0.5);
+      }
+    });
+
     let completedResearches = [];
     const updatedResearching = (nation.technologies?.researching || []).map(research => {
       const newProgress = research.progress + 1;
@@ -406,6 +419,7 @@ export const useGameLogic = () => {
       happiness,
       stats,
       facilities: updatedFacilities,
+      resourceStorage: updatedResourceStorage,
       workers: {
         common: prev.workers.common + populationGrowth,
         employed: newEmployed
