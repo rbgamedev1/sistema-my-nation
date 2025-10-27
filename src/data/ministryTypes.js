@@ -1,4 +1,4 @@
-// src/data/ministryTypes.js (ARQUIVO COMPLETO - usar este)
+// src/data/ministryTypes.js (ARQUIVO COMPLETO - ATUALIZADO COM RECURSOS)
 
 export const MINISTRY_TYPES = {
   educacao: {
@@ -14,7 +14,8 @@ export const MINISTRY_TYPES = {
           { role: 'Auxiliar', count: 4, minSalary: 1200 },
           { role: 'Cozinheiro', count: 2, minSalary: 1400 }
         ],
-        benefits: { education: 5, happiness: 3 }
+        benefits: { education: 5, happiness: 3 },
+        resourceConsumption: { water: 50 }
       },
       {
         name: 'Escola',
@@ -25,7 +26,8 @@ export const MINISTRY_TYPES = {
           { role: 'Coordenador', count: 3, minSalary: 3000 },
           { role: 'Auxiliar Administrativo', count: 5, minSalary: 1500 }
         ],
-        benefits: { education: 10, happiness: 5 }
+        benefits: { education: 10, happiness: 5 },
+        resourceConsumption: { water: 100 }
       },
       {
         name: 'Universidade',
@@ -37,7 +39,8 @@ export const MINISTRY_TYPES = {
           { role: 'Técnico', count: 20, minSalary: 3000 },
           { role: 'Administrativo', count: 15, minSalary: 2000 }
         ],
-        benefits: { education: 30, happiness: 10, research: 20 }
+        benefits: { education: 30, happiness: 10, research: 20 },
+        resourceConsumption: { water: 200 }
       }
     ]
   },
@@ -55,7 +58,8 @@ export const MINISTRY_TYPES = {
           { role: 'Técnico de Enfermagem', count: 4, minSalary: 1800 },
           { role: 'Recepcionista', count: 2, minSalary: 1400 }
         ],
-        benefits: { health: 10, happiness: 5 }
+        benefits: { health: 10, happiness: 5 },
+        resourceConsumption: { water: 100 }
       },
       {
         name: 'Hospital',
@@ -67,7 +71,8 @@ export const MINISTRY_TYPES = {
           { role: 'Técnico', count: 30, minSalary: 2000 },
           { role: 'Administrativo', count: 10, minSalary: 1800 }
         ],
-        benefits: { health: 30, happiness: 10 }
+        benefits: { health: 30, happiness: 10 },
+        resourceConsumption: { water: 300 }
       },
       {
         name: 'Hospital Universitário',
@@ -79,7 +84,8 @@ export const MINISTRY_TYPES = {
           { role: 'Técnico', count: 50, minSalary: 2500 },
           { role: 'Pesquisador', count: 20, minSalary: 6000 }
         ],
-        benefits: { health: 50, happiness: 15, research: 30 }
+        benefits: { health: 50, happiness: 15, research: 30 },
+        resourceConsumption: { water: 500 }
       }
     ]
   },
@@ -97,7 +103,8 @@ export const MINISTRY_TYPES = {
           { role: 'Soldado', count: 100, minSalary: 2000 },
           { role: 'Suporte', count: 20, minSalary: 1800 }
         ],
-        benefits: { security: 30, happiness: 5 }
+        benefits: { security: 30, happiness: 5 },
+        resourceConsumption: { water: 200, steel: 100 }
       },
       {
         name: 'Academia Militar',
@@ -108,7 +115,8 @@ export const MINISTRY_TYPES = {
           { role: 'Oficial Trainee', count: 50, minSalary: 3000 },
           { role: 'Suporte', count: 15, minSalary: 2000 }
         ],
-        benefits: { security: 20, education: 15, happiness: 8 }
+        benefits: { security: 20, education: 15, happiness: 8 },
+        resourceConsumption: { water: 150, steel: 50 }
       },
       {
         name: 'Centro de Treinamento',
@@ -118,7 +126,8 @@ export const MINISTRY_TYPES = {
           { role: 'Instrutor', count: 15, minSalary: 3500 },
           { role: 'Soldado em Treinamento', count: 80, minSalary: 1800 }
         ],
-        benefits: { security: 15, happiness: 5 }
+        benefits: { security: 15, happiness: 5 },
+        resourceConsumption: { water: 100 }
       }
     ]
   },
@@ -136,7 +145,9 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador Rural', count: 50, minSalary: 1500 },
           { role: 'Operador de Máquinas', count: 8, minSalary: 2000 }
         ],
-        benefits: { food: 30, economy: 10, happiness: 5 }
+        benefits: { food: 30, economy: 10, happiness: 5 },
+        resourceConsumption: { water: 500, arableLand: 100 },
+        resourceProduction: { food: 1000 }
       },
       {
         name: 'Centro de Distribuição',
@@ -147,7 +158,8 @@ export const MINISTRY_TYPES = {
           { role: 'Motorista', count: 30, minSalary: 2200 },
           { role: 'Operador de Armazém', count: 40, minSalary: 1800 }
         ],
-        benefits: { food: 20, economy: 20, happiness: 8 }
+        benefits: { food: 20, economy: 20, happiness: 8 },
+        resourceConsumption: { water: 100 }
       },
       {
         name: 'Instituto de Pesquisa',
@@ -158,7 +170,8 @@ export const MINISTRY_TYPES = {
           { role: 'Técnico de Laboratório', count: 20, minSalary: 3000 },
           { role: 'Assistente', count: 10, minSalary: 2000 }
         ],
-        benefits: { food: 10, research: 40, economy: 15 }
+        benefits: { food: 10, research: 40, economy: 15 },
+        resourceConsumption: { water: 150 }
       }
     ]
   },
@@ -176,7 +189,9 @@ export const MINISTRY_TYPES = {
           { role: 'Minerador', count: 100, minSalary: 2500 },
           { role: 'Operador de Equipamento', count: 30, minSalary: 3000 }
         ],
-        benefits: { economy: 40, resources: 50 }
+        benefits: { economy: 40, resources: 50 },
+        resourceConsumption: { water: 200 },
+        resourceProduction: { steel: 500, gold: 50, copper: 300 }
       },
       {
         name: 'Refinaria',
@@ -187,7 +202,9 @@ export const MINISTRY_TYPES = {
           { role: 'Técnico', count: 50, minSalary: 4000 },
           { role: 'Operador', count: 80, minSalary: 3500 }
         ],
-        benefits: { economy: 60, resources: 30 }
+        benefits: { economy: 60, resources: 30 },
+        resourceConsumption: { water: 300, oil: 200 },
+        resourceProduction: { fuel: 500, energy: 100 }
       },
       {
         name: 'Usina de Energia',
@@ -199,8 +216,23 @@ export const MINISTRY_TYPES = {
           { role: 'Operador', count: 100, minSalary: 4000 },
           { role: 'Manutenção', count: 40, minSalary: 3500 }
         ],
-        benefits: { economy: 80, energy: 100, happiness: 20 }
-      } 
+        benefits: { economy: 80, energy: 100, happiness: 20 },
+        resourceConsumption: { water: 1000, oil: 300 },
+        resourceProduction: { energy: 2000 }
+      },
+      {
+        name: 'Poço de Petróleo',
+        cost: 500000,
+        jobs: [
+          { role: 'Engenheiro de Petróleo', count: 5, minSalary: 12000 },
+          { role: 'Supervisor', count: 10, minSalary: 6000 },
+          { role: 'Operador de Plataforma', count: 50, minSalary: 4000 },
+          { role: 'Técnico', count: 20, minSalary: 3500 }
+        ],
+        benefits: { economy: 100, resources: 80 },
+        resourceConsumption: { water: 200 },
+        resourceProduction: { oil: 1000, gas: 500 }
+      }
     ]
   },
   
@@ -218,7 +250,8 @@ export const MINISTRY_TYPES = {
           { role: 'Assistente', count: 5, minSalary: 2000 }
         ],
         benefits: { research: 20, education: 10 },
-        researchSpeed: 1
+        researchSpeed: 1,
+        resourceConsumption: { water: 100, energy: 200 }
       },
       {
         name: 'Instituto de Tecnologia Avançada',
@@ -231,7 +264,8 @@ export const MINISTRY_TYPES = {
           { role: 'Suporte', count: 15, minSalary: 3000 }
         ],
         benefits: { research: 50, education: 20, economy: 15 },
-        researchSpeed: 2
+        researchSpeed: 2,
+        resourceConsumption: { water: 200, energy: 500 }
       },
       {
         name: 'Supercomputador Nacional',
@@ -243,7 +277,8 @@ export const MINISTRY_TYPES = {
           { role: 'Operador', count: 30, minSalary: 6000 }
         ],
         benefits: { research: 100, education: 30, economy: 40 },
-        researchSpeed: 4
+        researchSpeed: 4,
+        resourceConsumption: { water: 300, energy: 1000 }
       }
     ]
   }

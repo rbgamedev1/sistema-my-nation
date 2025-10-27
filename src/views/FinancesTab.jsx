@@ -15,27 +15,71 @@ const FinancesTab = ({ nation, finances }) => {
         <div className="space-y-3">
           <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
             <div>
-              <span className="font-medium text-lg">Receitas (Impostos)</span>
+              <span className="font-medium text-lg">Receitas Totais</span>
               <p className="text-sm text-gray-600">
-                {(nation.workers.common - nation.workers.employed).toLocaleString()} trabalhadores × R$ {GAME_CONFIG.BASE_WORKER_SALARY} × {(GAME_CONFIG.TAX_RATE * 100)}%
+                Impostos + Exportação de Recursos
               </p>
             </div>
             <span className="text-green-600 font-bold text-xl">
               + R$ {finances.revenue.toLocaleString()}
             </span>
           </div>
+
+          {/* Detalhamento de Receitas */}
+          <div className="ml-4 space-y-2">
+            <div className="flex justify-between items-center p-3 bg-green-100 rounded">
+              <div>
+                <span className="font-medium">💼 Impostos</span>
+                <p className="text-xs text-gray-600">
+                  {(nation.workers.common - nation.workers.employed).toLocaleString()} trabalhadores × R$ {GAME_CONFIG.BASE_WORKER_SALARY} × {(GAME_CONFIG.TAX_RATE * 100)}%
+                </p>
+              </div>
+              <span className="text-green-700 font-bold">
+                + R$ {finances.taxRevenue.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-green-100 rounded">
+              <div>
+                <span className="font-medium">📦 Exportação de Recursos</span>
+                <p className="text-xs text-gray-600">
+                  50% dos excedentes vendidos automaticamente
+                </p>
+              </div>
+              <span className="text-green-700 font-bold">
+                + R$ {finances.resourceRevenue.toLocaleString()}
+              </span>
+            </div>
+          </div>
           
           <div className="flex justify-between items-center p-4 bg-red-50 rounded-lg">
             <div>
-              <span className="font-medium text-lg">Despesas (Salários)</span>
+              <span className="font-medium text-lg">Despesas Totais</span>
               <p className="text-sm text-gray-600">
-                {nation.ministries.filter(m => m.minister).length} ministros + {nation.workers.employed.toLocaleString()} funcionários
+                Salários + Penalidades de Recursos
               </p>
             </div>
             <span className="text-red-600 font-bold text-xl">
               - R$ {finances.expenses.toLocaleString()}
             </span>
           </div>
+
+          {/* Detalhamento de Despesas */}
+          {finances.resourcePenalty > 0 && (
+            <div className="ml-4">
+              <div className="flex justify-between items-center p-3 bg-red-100 rounded">
+                <div>
+                  <span className="font-medium">⚠️ Importação de Recursos</span>
+                  <p className="text-xs text-gray-600">
+                    Custo de recursos em déficit
+                  </p>
+                </div>
+                <span className="text-red-700 font-bold">
+                  - R$ {finances.resourcePenalty.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          )}
           
           <div className={`flex justify-between items-center p-4 rounded-lg font-bold text-xl ${
             finances.balance >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
