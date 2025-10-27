@@ -33,10 +33,15 @@ export const calculateFinances = (nation) => {
   const revenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.TAX_RATE;
   
   let expenses = 0;
+  
+  // Despesas com ministros
   nation.ministries.forEach(ministry => {
-    if (ministry.minister) expenses += ministry.minister.salary;
+    if (ministry.minister) {
+      expenses += ministry.minister.salary;
+    }
   });
   
+  // Despesas com funcionários das benfeitorias
   nation.facilities.forEach(facility => {
     facility.jobs.forEach(job => {
       const filled = job.filled || 0;
@@ -44,19 +49,32 @@ export const calculateFinances = (nation) => {
     });
   });
 
-  return { revenue, expenses, balance: revenue - expenses };
+  return { 
+    revenue: Math.floor(revenue), 
+    expenses: Math.floor(expenses), 
+    balance: Math.floor(revenue - expenses) 
+  };
 };
 
 export const calculateHappiness = (nation) => {
   let happiness = 50;
   const stats = { ...nation.stats };
   
-  nation.facilities.forEach(f => {
-    Object.entries(f.benefits).forEach(([key, value]) => {
-      stats[key] = (stats[key] || 0) + value;
-    });
+  // Resetar stats para recalcular
+  Object.keys(stats).forEach(key => {
+    stats[key] = 0;
+  });
+  
+  // Somar benefícios de todas as benfeitorias
+  nation.facilities.forEach(facility => {
+    if (facility.benefits) {
+      Object.entries(facility.benefits).forEach(([key, value]) => {
+        stats[key] = (stats[key] || 0) + value;
+      });
+    }
   });
 
+  // Calcular felicidade baseada nos stats
   happiness += stats.education * 0.2;
   happiness += stats.health * 0.3;
   happiness += stats.security * 0.1;

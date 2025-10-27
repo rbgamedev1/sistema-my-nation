@@ -1,3 +1,5 @@
+// src/hooks/useGameLogic.js
+
 import { useState } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
 import { MINISTRY_TYPES } from '../data/ministryTypes';
@@ -23,7 +25,7 @@ export const useGameLogic = () => {
 
   // Sistema de Notificações
   const addNotification = (message, type = 'info') => {
-    const id = Date.now() + Math.random(); // Garante ID único
+    const id = Date.now() + Math.random();
     setNotifications(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
@@ -112,13 +114,15 @@ export const useGameLogic = () => {
   const hireMinister = (ministryId, salary) => {
     if (!nation) return;
 
-    if (nation.treasury < salary) {
-      addNotification('Tesouro insuficiente para pagar o salário do ministro!', 'error');
+    const salaryNum = parseInt(salary);
+    
+    if (isNaN(salaryNum) || salaryNum < 5000) {
+      addNotification('Salário mínimo do ministro: R$ 5.000', 'error');
       return;
     }
 
-    if (salary < 1000) {
-      addNotification('Salário muito baixo! Mínimo recomendado: R$ 1.000', 'warning');
+    if (nation.treasury < salaryNum) {
+      addNotification('Tesouro insuficiente para pagar o salário do ministro!', 'error');
       return;
     }
 
@@ -137,13 +141,54 @@ export const useGameLogic = () => {
       ...prev,
       ministries: prev.ministries.map(m =>
         m.id === ministryId
-          ? { ...m, minister: { name: `Ministro ${m.name}`, salary } }
+          ? { ...m, minister: { name: `Ministro ${m.name}`, salary: salaryNum } }
           : m
       ),
-      treasury: prev.treasury - salary
+      treasury: prev.treasury - salaryNum
     }));
 
-    addNotification(`👔 Ministro contratado com sucesso! Salário: R$ ${salary.toLocaleString()}`, 'success');
+    addNotification(`👔 Ministro contratado com sucesso! Salário: R$ ${salaryNum.toLocaleString()}`, 'success');
+  };
+
+  // Atualizar Salário do Ministro
+  const updateMinisterSalary = (ministryId, newSalary) => {
+    if (!nation) return;
+
+    const salaryNum = parseInt(newSalary);
+    
+    if (isNaN(salaryNum) || salaryNum < 5000) {
+      addNotification('Salário mínimo do ministro: R$ 5.000', 'error');
+      return;
+    }
+
+    const ministry = nation.ministries.find(m => m.id === ministryId);
+    if (!ministry || !ministry.minister) {
+      addNotification('Ministério ou ministro não encontrado!', 'error');
+      return;
+    }
+
+    const oldSalary = ministry.minister.salary;
+    const difference = salaryNum - oldSalary;
+
+    if (difference > 0 && nation.treasury < difference) {
+      addNotification('Tesouro insuficiente para aumentar o salário!', 'error');
+      return;
+    }
+
+    setNation(prev => ({
+      ...prev,
+      ministries: prev.ministries.map(m =>
+        m.id === ministryId
+          ? { ...m, minister: { ...m.minister, salary: salaryNum } }
+          : m
+      ),
+      treasury: prev.treasury - difference
+    }));
+
+    addNotification(
+      `💵 Salário do Ministro de ${ministry.name} atualizado para R$ ${salaryNum.toLocaleString()}`,
+      'success'
+    );
   };
 
   // Criar Benfeitoria
@@ -170,11 +215,11 @@ export const useGameLogic = () => {
     }
 
     const newFacility = {
-      id: Date.now(),
+      id: Date.now() + Math.random(),
       ministryId,
       name: facilityData.name,
       cost: facilityData.cost,
-      benefits: facilityData.benefits || {},
+      benefits: { ...(facilityData.benefits || {}) },
       researchSpeed: facilityData.researchSpeed || 0,
       jobs: facilityData.jobs.map(job => ({ 
         ...job, 
@@ -215,7 +260,9 @@ export const useGameLogic = () => {
       return;
     }
 
-    if (newSalary < job.minSalary) {
+    const salaryNum = parseInt(newSalary);
+    
+    if (isNaN(salaryNum) || salaryNum < job.minSalary) {
       addNotification(
         `⚠️ Salário abaixo do mínimo! Mínimo: R$ ${job.minSalary.toLocaleString()}`,
         'warning'
@@ -230,7 +277,7 @@ export const useGameLogic = () => {
           ? {
               ...f,
               jobs: f.jobs.map(j =>
-                j.role === role ? { ...j, currentSalary: newSalary } : j
+                j.role === role ? { ...j, currentSalary: salaryNum } : j
               )
             }
           : f
@@ -238,7 +285,7 @@ export const useGameLogic = () => {
     }));
 
     addNotification(
-      `💵 Salário de ${role} atualizado para R$ ${newSalary.toLocaleString()}`,
+      `💵 Salário de ${role} atualizado para R$ ${salaryNum.toLocaleString()}`,
       'success'
     );
   };
@@ -254,7 +301,6 @@ export const useGameLogic = () => {
       return;
     }
 
-    // Verificar limite de pesquisas simultâneas
     const currentResearching = nation.technologies?.researching?.length || 0;
     if (currentResearching >= GAME_CONFIG.TECHNOLOGY.MAX_SIMULTANEOUS_RESEARCH) {
       addNotification(
@@ -297,13 +343,8 @@ export const useGameLogic = () => {
     if (!tech) return;
 
     setNation(prev => {
-      // Remover da lista de pesquisas em andamento
       const updatedResearching = prev.technologies.researching.filter(r => r.id !== techId);
-      
-      // Adicionar às pesquisas concluídas
       const updatedResearched = [...(prev.technologies.researched || []), techId];
-      
-      // Aplicar efeitos da tecnologia em todas as benfeitorias relevantes
       const updatedFacilities = prev.facilities.map(facility => 
         applyTechEffects(facility, updatedResearched)
       );
@@ -325,13 +366,12 @@ export const useGameLogic = () => {
     );
   };
 
-  // Próximo Turno (Avançar Mês)
+  // Próximo Turno
   const nextTurn = () => {
     if (!nation) return;
 
     const finances = calculateFinances(nation);
     
-    // Verificar se tem dinheiro para pagar as contas
     if (finances.balance < 0 && nation.treasury + finances.balance < 0) {
       addNotification(
         '🚨 ALERTA: Tesouro insuficiente para pagar despesas mensais! Ajuste suas finanças!',
@@ -340,29 +380,22 @@ export const useGameLogic = () => {
       return;
     }
 
-    // Calcular felicidade e stats
     const { happiness, stats } = calculateHappiness(nation);
-    
-    // Calcular crescimento populacional
     const populationGrowth = calculatePopulationGrowth(nation.population, happiness);
-    
-    // Preencher vagas automaticamente
     const { updatedFacilities, newEmployed } = autoFillJobs(nation);
 
-    // Atualizar progresso de pesquisas
     let completedResearches = [];
     const updatedResearching = (nation.technologies?.researching || []).map(research => {
       const newProgress = research.progress + 1;
       
       if (newProgress >= research.total) {
         completedResearches.push(research.id);
-        return null; // Será filtrado
+        return null;
       }
       
       return { ...research, progress: newProgress };
     }).filter(Boolean);
 
-    // Atualizar estado da nação
     setNation(prev => ({
       ...prev,
       currentMonth: prev.currentMonth + 1,
@@ -381,21 +414,17 @@ export const useGameLogic = () => {
       }
     }));
 
-    // Completar pesquisas finalizadas
     completedResearches.forEach(techId => {
       setTimeout(() => completeResearch(techId), 500);
     });
 
-    // Notificações do turno
     const newMonth = nation.currentMonth + 1;
     
-    // Notificação financeira
     addNotification(
       `📅 Mês ${newMonth}: Balanço ${finances.balance >= 0 ? '+' : ''}R$ ${finances.balance.toLocaleString()}`,
       finances.balance >= 0 ? 'success' : 'warning'
     );
 
-    // Notificação de crescimento populacional
     if (populationGrowth > 0) {
       addNotification(
         `👥 População cresceu em ${populationGrowth.toLocaleString()} habitantes!`,
@@ -403,7 +432,6 @@ export const useGameLogic = () => {
       );
     }
 
-    // Notificação de pesquisas concluídas
     if (completedResearches.length > 0) {
       addNotification(
         `🔬 ${completedResearches.length} pesquisa(s) concluída(s) este mês!`,
@@ -411,7 +439,6 @@ export const useGameLogic = () => {
       );
     }
 
-    // Avisos especiais
     if (happiness < GAME_CONFIG.HAPPINESS_THRESHOLD.POOR) {
       addNotification(
         '😢 Felicidade muito baixa! Construa benfeitorias de saúde e educação!',
@@ -441,7 +468,6 @@ export const useGameLogic = () => {
       );
     }
 
-    // Avisos de tesouro
     if (nation.treasury < 1000000) {
       addNotification(
         '⚠️ Tesouro baixo! Cuidado com gastos excessivos!',
@@ -449,7 +475,6 @@ export const useGameLogic = () => {
       );
     }
 
-    // Avisos de pesquisa
     if (updatedResearching.length > 0) {
       updatedResearching.forEach(r => {
         const remaining = r.total - r.progress;
@@ -464,27 +489,20 @@ export const useGameLogic = () => {
     }
   };
 
-  // Retornar todas as funções e estados
   return {
-    // Estados
     gameState,
     president,
     nation,
     notifications,
-    
-    // Funções principais
     startGame,
     createMinistry,
     hireMinister,
+    updateMinisterSalary,
     createFacility,
     updateJobSalary,
     nextTurn,
-    
-    // Funções de tecnologia
     startResearch,
     completeResearch,
-    
-    // Utilitários
     addNotification
   };
 };

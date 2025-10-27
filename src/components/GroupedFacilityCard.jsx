@@ -1,10 +1,23 @@
+// src/components/GroupedFacilityCard.jsx
+
 import React, { useState } from 'react';
 import { TECHNOLOGIES } from '../data/technologies';
 import { calculateGroupTotals } from '../utils/facilityUtils';
 
 const GroupedFacilityCard = ({ group, onUpdateJobSalary }) => {
   const [expanded, setExpanded] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
+  const [editingSalary, setEditingSalary] = useState('');
   const totals = calculateGroupTotals(group);
+
+  const handleUpdateSalary = (facilityId, role) => {
+    const salary = parseInt(editingSalary);
+    if (!isNaN(salary)) {
+      onUpdateJobSalary(facilityId, role, salary);
+      setEditingJob(null);
+      setEditingSalary('');
+    }
+  };
 
   return (
     <div className={`p-4 rounded-lg border-2 ${
@@ -131,9 +144,49 @@ const GroupedFacilityCard = ({ group, onUpdateJobSalary }) => {
                 <div key={facility.id} className="bg-gray-50 p-2 rounded text-xs">
                   <p className="font-medium mb-1">Unidade #{index + 1}</p>
                   {facility.jobs.map(job => (
-                    <div key={job.role} className="flex justify-between text-gray-600 mb-1">
-                      <span>{job.role}: {job.filled || 0}/{job.count}</span>
-                      <span>R$ {(job.currentSalary || job.minSalary).toLocaleString()}</span>
+                    <div key={job.role} className="mb-2">
+                      <div className="flex justify-between text-gray-600 mb-1">
+                        <span>{job.role}: {job.filled || 0}/{job.count}</span>
+                        {editingJob === `${facility.id}-${job.role}` ? (
+                          <div className="flex gap-1">
+                            <input
+                              type="number"
+                              value={editingSalary}
+                              onChange={(e) => setEditingSalary(e.target.value)}
+                              className="w-20 px-1 py-0 border rounded text-xs"
+                              min={job.minSalary}
+                            />
+                            <button
+                              onClick={() => handleUpdateSalary(facility.id, job.role)}
+                              className="bg-green-500 text-white px-2 py-0 rounded text-xs hover:bg-green-600"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingJob(null);
+                                setEditingSalary('');
+                              }}
+                              className="bg-gray-500 text-white px-2 py-0 rounded text-xs hover:bg-gray-600"
+                            >
+                              ✗
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>R$ {(job.currentSalary || job.minSalary).toLocaleString()}</span>
+                            <button
+                              onClick={() => {
+                                setEditingJob(`${facility.id}-${job.role}`);
+                                setEditingSalary((job.currentSalary || job.minSalary).toString());
+                              }}
+                              className="text-blue-600 hover:underline"
+                            >
+                              ✏️
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

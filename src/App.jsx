@@ -22,6 +22,7 @@ const MyNation = () => {
     startGame,
     createMinistry,
     hireMinister,
+    updateMinisterSalary,
     createFacility,
     updateJobSalary,
     nextTurn,
@@ -147,6 +148,7 @@ const MyNation = () => {
             setSelectedMinistry={setSelectedMinistry}
             onCreateMinistry={createMinistry}
             onHireMinister={hireMinister}
+            onUpdateMinisterSalary={updateMinisterSalary}
             onCreateFacility={createFacility}
             onUpdateJobSalary={updateJobSalary}
           />

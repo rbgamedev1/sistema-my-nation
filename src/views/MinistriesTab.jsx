@@ -1,4 +1,6 @@
-import React from 'react';
+// src/views/MinistriesTab.jsx
+
+import React, { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { MINISTRY_TYPES } from '../data/ministryTypes';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -11,9 +13,22 @@ const MinistriesTab = ({
   setSelectedMinistry,
   onCreateMinistry,
   onHireMinister,
+  onUpdateMinisterSalary,
   onCreateFacility,
   onUpdateJobSalary
 }) => {
+  const [editingMinister, setEditingMinister] = useState(null);
+  const [newMinisterSalary, setNewMinisterSalary] = useState('');
+
+  const handleUpdateMinisterSalary = (ministryId) => {
+    const salary = parseInt(newMinisterSalary);
+    if (!isNaN(salary) && salary >= 5000) {
+      onUpdateMinisterSalary(ministryId, salary);
+      setEditingMinister(null);
+      setNewMinisterSalary('');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Create new ministry */}
@@ -81,11 +96,52 @@ const MinistriesTab = ({
               <div>
                 <h3 className="text-xl font-bold">{ministry.icon} Ministério de {ministry.name}</h3>
                 {ministry.minister ? (
-                  <p className="text-green-600">
-                    ✓ {ministry.minister.name} - R$ {ministry.minister.salary.toLocaleString()}/mês
-                  </p>
+                  <div className="mt-2">
+                    {editingMinister === ministry.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={newMinisterSalary}
+                          onChange={(e) => setNewMinisterSalary(e.target.value)}
+                          placeholder={ministry.minister.salary}
+                          min="5000"
+                          className="px-3 py-2 border border-gray-300 rounded w-40"
+                        />
+                        <button
+                          onClick={() => handleUpdateMinisterSalary(ministry.id)}
+                          className="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm"
+                        >
+                          Salvar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingMinister(null);
+                            setNewMinisterSalary('');
+                          }}
+                          className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 text-sm"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-green-600">
+                          ✓ {ministry.minister.name} - R$ {ministry.minister.salary.toLocaleString()}/mês
+                        </p>
+                        <button
+                          onClick={() => {
+                            setEditingMinister(ministry.id);
+                            setNewMinisterSalary(ministry.minister.salary.toString());
+                          }}
+                          className="text-blue-600 hover:underline text-sm mt-1"
+                        >
+                          Editar salário
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <p className="text-red-600">✗ Sem ministro - Contrate um para desbloquear construções</p>
+                  <p className="text-red-600 mt-2">✗ Sem ministro - Contrate um para desbloquear construções</p>
                 )}
               </div>
               {!ministry.minister && (

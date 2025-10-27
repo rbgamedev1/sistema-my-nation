@@ -1,3 +1,5 @@
+// src/views/FinancesTab.jsx
+
 import React from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
 import { groupFacilities, calculateGroupTotals } from '../utils/facilityUtils';

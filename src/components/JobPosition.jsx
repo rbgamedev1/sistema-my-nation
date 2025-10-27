@@ -9,12 +9,20 @@ const JobPosition = ({ job, facilityId, onUpdateSalary }) => {
   const percentage = (filled / job.count) * 100;
 
   const handleSave = () => {
-    onUpdateSalary(facilityId, job.role, salary);
+    const salaryNum = parseInt(salary);
+    if (!isNaN(salaryNum) && salaryNum >= job.minSalary) {
+      onUpdateSalary(facilityId, job.role, salaryNum);
+      setEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setSalary(job.currentSalary || job.minSalary);
     setEditing(false);
   };
 
   return (
-    <div className="bg-gray-50 p-3 rounded border-l-4 border-blue-500">
+    <div className="bg-white p-3 rounded border-l-4 border-blue-500">
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1">
           <p className="font-medium">{job.role}</p>
@@ -28,7 +36,7 @@ const JobPosition = ({ job, facilityId, onUpdateSalary }) => {
               <input
                 type="number"
                 value={salary}
-                onChange={(e) => setSalary(parseInt(e.target.value))}
+                onChange={(e) => setSalary(e.target.value)}
                 className="w-24 px-2 py-1 border rounded text-sm"
                 min={job.minSalary}
               />
@@ -37,6 +45,12 @@ const JobPosition = ({ job, facilityId, onUpdateSalary }) => {
                 className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
               >
                 Salvar
+              </button>
+              <button
+                onClick={handleCancel}
+                className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
+              >
+                Cancelar
               </button>
             </div>
           ) : (

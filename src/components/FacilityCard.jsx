@@ -1,3 +1,5 @@
+// src/components/FacilityCard.jsx
+
 import React from 'react';
 import JobPosition from './JobPosition';
 import { TECHNOLOGIES } from '../data/technologies';
@@ -73,7 +75,7 @@ const FacilityCard = ({ facility, onUpdateJobSalary }) => {
         ))}
       </div>
 
-      {facility.benefits && (
+      {facility.benefits && Object.keys(facility.benefits).length > 0 && (
         <div className="mt-3 pt-3 border-t">
           <p className="text-xs font-medium text-gray-600 mb-1">Benefícios Totais:</p>
           <div className="flex flex-wrap gap-2">

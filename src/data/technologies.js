@@ -1,3 +1,5 @@
+// src/data/technologies.js
+
 export const TECHNOLOGIES = {
   // EDUCAÇÃO
   educacao_digital: {
@@ -5,14 +7,14 @@ export const TECHNOLOGIES = {
     description: 'Implementa tablets e computadores nas escolas',
     category: 'educacao',
     cost: 500000,
-    researchTime: 3, // meses
+    researchTime: 3,
     icon: '💻',
-    requirements: [], // sem requisitos
+    requirements: [],
     effects: {
       facilities: ['Escola', 'Universidade'],
       benefits: { education: 5, happiness: 2 },
-      efficiency: 1.2, // 20% mais eficiente
-      costReduction: 0.9 // 10% mais barato operar
+      efficiency: 1.2,
+      costReduction: 0.9
     }
   },
   ensino_superior_avancado: {
@@ -131,7 +133,7 @@ export const TECHNOLOGIES = {
       facilities: ['Base Militar', 'Academia Militar'],
       benefits: { security: 40 },
       efficiency: 1.8,
-      costReduction: 1.2 // 20% mais caro, mas muito mais efetivo
+      costReduction: 1.2
     }
   },
   
@@ -195,7 +197,7 @@ export const TECHNOLOGIES = {
     icon: '🤖',
     requirements: ['educacao_digital', 'telemedicina'],
     effects: {
-      facilities: 'ALL', // Aplica a todas
+      facilities: 'ALL',
       benefits: { research: 30, economy: 40, efficiency: 10 },
       efficiency: 1.3,
       costReduction: 0.8
@@ -280,13 +282,16 @@ export const calculateResearchSpeed = (nation) => {
   let speed = 1;
   
   // Somar velocidade de todas as instalações de tecnologia
-  nation.facilities
-    ?.filter(f => f.researchSpeed)
-    .forEach(f => {
-      const employmentRate = f.jobs.reduce((sum, j) => sum + (j.filled || 0), 0) / 
-                            f.jobs.reduce((sum, j) => sum + j.count, 0);
-      speed += f.researchSpeed * employmentRate;
-    });
+  if (nation.facilities) {
+    nation.facilities
+      .filter(f => f.researchSpeed && f.researchSpeed > 0)
+      .forEach(f => {
+        const totalJobs = f.jobs.reduce((sum, j) => sum + j.count, 0);
+        const filledJobs = f.jobs.reduce((sum, j) => sum + (j.filled || 0), 0);
+        const employmentRate = totalJobs > 0 ? filledJobs / totalJobs : 0;
+        speed += f.researchSpeed * employmentRate;
+      });
+  }
   
   return speed;
 };
@@ -295,24 +300,25 @@ export const calculateResearchSpeed = (nation) => {
 export const applyTechEffects = (facility, researchedTechs) => {
   let modifiedFacility = { ...facility };
   
+  if (!researchedTechs || researchedTechs.length === 0) {
+    return modifiedFacility;
+  }
+  
   researchedTechs.forEach(techId => {
     const tech = TECHNOLOGIES[techId];
     if (!tech) return;
     
     // Verificar se a tecnologia se aplica a esta benfeitoria
     const applies = tech.effects.facilities === 'ALL' || 
-                   tech.effects.facilities?.includes(facility.name);
+                   (Array.isArray(tech.effects.facilities) && tech.effects.facilities.includes(facility.name));
     
     if (applies) {
       // Aplicar benefícios adicionais
       if (tech.effects.benefits) {
-        modifiedFacility.benefits = {
-          ...modifiedFacility.benefits,
-          ...Object.entries(tech.effects.benefits).reduce((acc, [key, val]) => {
-            acc[key] = (modifiedFacility.benefits[key] || 0) + val;
-            return acc;
-          }, {})
-        };
+        modifiedFacility.benefits = modifiedFacility.benefits || {};
+        Object.entries(tech.effects.benefits).forEach(([key, val]) => {
+          modifiedFacility.benefits[key] = (modifiedFacility.benefits[key] || 0) + val;
+        });
       }
       
       // Marcar tecnologias aplicadas

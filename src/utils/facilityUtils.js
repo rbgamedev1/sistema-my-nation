@@ -1,3 +1,5 @@
+// src/utils/facilityUtils.js
+
 // Utilitários para agrupar e processar benfeitorias
 
 export const groupFacilities = (facilities) => {
@@ -25,13 +27,13 @@ export const groupFacilities = (facilities) => {
 
     // Agregar benefícios
     if (facility.benefits) {
-      Object.entries(facility.benefits).forEach(([key, value]) => {
-        grouped[key].benefits[key] = (grouped[key].benefits[key] || 0) + value;
+      Object.entries(facility.benefits).forEach(([benefitKey, value]) => {
+        grouped[key].benefits[benefitKey] = (grouped[key].benefits[benefitKey] || 0) + value;
       });
     }
 
     // Coletar tecnologias aplicadas
-    if (facility.appliedTechs) {
+    if (facility.appliedTechs && Array.isArray(facility.appliedTechs)) {
       facility.appliedTechs.forEach(tech => grouped[key].appliedTechs.add(tech));
     }
 
