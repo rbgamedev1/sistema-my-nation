@@ -1,3 +1,5 @@
+// src/data/ministryTypes.js (ARQUIVO COMPLETO - usar este)
+
 export const MINISTRY_TYPES = {
   educacao: {
     name: 'Educação',
@@ -39,6 +41,7 @@ export const MINISTRY_TYPES = {
       }
     ]
   },
+  
   saude: {
     name: 'Saúde',
     icon: '🏥',
@@ -80,6 +83,7 @@ export const MINISTRY_TYPES = {
       }
     ]
   },
+  
   defesa: {
     name: 'Defesa',
     icon: '🛡️',
@@ -118,6 +122,7 @@ export const MINISTRY_TYPES = {
       }
     ]
   },
+  
   agricultura: {
     name: 'Agricultura',
     icon: '🌾',
@@ -157,6 +162,7 @@ export const MINISTRY_TYPES = {
       }
     ]
   },
+  
   minasEnergia: {
     name: 'Minas e Energia',
     icon: '⚡',
@@ -197,8 +203,7 @@ export const MINISTRY_TYPES = {
       } 
     ]
   },
-  // Adicione isso ao MINISTRY_TYPES existente
-
+  
   tecnologia: {
     name: 'Tecnologia',
     icon: '💻',
@@ -213,7 +218,7 @@ export const MINISTRY_TYPES = {
           { role: 'Assistente', count: 5, minSalary: 2000 }
         ],
         benefits: { research: 20, education: 10 },
-        researchSpeed: 1 // Multiplica velocidade de pesquisa
+        researchSpeed: 1
       },
       {
         name: 'Instituto de Tecnologia Avançada',
@@ -242,5 +247,4 @@ export const MINISTRY_TYPES = {
       }
     ]
   }
-  
 };

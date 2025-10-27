@@ -1,3 +1,5 @@
+// src/App.jsx
+
 import React, { useState } from 'react';
 import { useGameLogic } from './hooks/useGameLogic';
 import { calculateFinances } from './utils/calculations';

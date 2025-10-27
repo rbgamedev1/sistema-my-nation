@@ -1,3 +1,5 @@
+// src/data/gameConfig.js
+
 export const GAME_CONFIG = {
   INITIAL_POPULATION: 1000000,
   INITIAL_TREASURY: 50000000,

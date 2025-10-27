@@ -1,3 +1,5 @@
+// src/components/StatsCard.jsx
+
 import React from 'react';
 
 const StatsCard = ({ title, value, icon: Icon, color, subtitle }) => (

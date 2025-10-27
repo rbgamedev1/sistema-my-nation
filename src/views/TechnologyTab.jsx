@@ -1,3 +1,5 @@
+// src/views/TechnologyTab.jsx
+
 import React, { useState } from 'react';
 import { TECHNOLOGIES, canResearch, calculateResearchSpeed } from '../data/technologies';
 

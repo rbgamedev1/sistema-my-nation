@@ -1,3 +1,5 @@
+// src/components/GameHeader.jsx
+
 import React from 'react';
 
 const GameHeader = ({ nation, president }) => (

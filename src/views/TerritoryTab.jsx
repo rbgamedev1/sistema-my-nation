@@ -1,3 +1,5 @@
+// src/views/TerritoryTab.jsx
+
 import React from 'react';
 import { MapPin } from 'lucide-react';
 

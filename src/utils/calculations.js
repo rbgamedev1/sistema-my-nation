@@ -1,3 +1,5 @@
+// src/utils/calculations.js
+
 import { GAME_CONFIG } from '../data/gameConfig';
 
 export const generateTerritory = () => {

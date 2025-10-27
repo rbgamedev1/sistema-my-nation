@@ -1,7 +1,10 @@
 import React from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
+import { groupFacilities, calculateGroupTotals } from '../utils/facilityUtils';
 
 const FinancesTab = ({ nation, finances }) => {
+  const groupedFacilities = groupFacilities(nation.facilities);
+
   return (
     <div className="space-y-4">
       <div className="bg-white p-6 rounded-lg shadow">
@@ -68,28 +71,27 @@ const FinancesTab = ({ nation, finances }) => {
           </div>
         )}
 
-        {nation.facilities.length > 0 && (
+        {groupedFacilities.length > 0 && (
           <div>
-            <h4 className="font-medium mb-2">Funcionários por Benfeitoria:</h4>
+            <h4 className="font-medium mb-2">Funcionários por Tipo de Benfeitoria:</h4>
             <div className="space-y-3">
-              {nation.facilities.map(facility => {
-                const totalCost = facility.jobs.reduce(
-                  (sum, job) => sum + (job.filled || 0) * (job.currentSalary || job.minSalary), 
-                  0
-                );
+              {groupedFacilities.map(group => {
+                const totals = calculateGroupTotals(group);
                 
                 return (
-                  <div key={facility.id} className="bg-gray-50 p-3 rounded">
+                  <div key={group.name} className="bg-gray-50 p-3 rounded">
                     <div className="flex justify-between font-medium mb-2">
-                      <span>{facility.name}</span>
-                      <span className="text-blue-600">R$ {totalCost.toLocaleString()}/mês</span>
+                      <span>
+                        {group.name} <span className="text-sm text-gray-500">(x{group.count})</span>
+                      </span>
+                      <span className="text-blue-600">R$ {totals.totalMonthlyCost.toLocaleString()}/mês</span>
                     </div>
                     <div className="pl-4 space-y-1 text-sm">
-                      {facility.jobs.map(job => {
-                        const cost = (job.filled || 0) * (job.currentSalary || job.minSalary);
+                      {Object.values(group.jobs).map(job => {
+                        const cost = job.totalFilled * job.avgSalary;
                         return cost > 0 ? (
                           <div key={job.role} className="flex justify-between text-gray-600">
-                            <span>• {job.filled} {job.role}(s)</span>
+                            <span>• {job.totalFilled} {job.role}(s)</span>
                             <span>R$ {cost.toLocaleString()}</span>
                           </div>
                         ) : null;
@@ -102,7 +104,7 @@ const FinancesTab = ({ nation, finances }) => {
           </div>
         )}
 
-        {nation.ministries.filter(m => m.minister).length === 0 && nation.facilities.length === 0 && (
+        {nation.ministries.filter(m => m.minister).length === 0 && groupedFacilities.length === 0 && (
           <p className="text-gray-500 text-center py-4">Nenhuma despesa registrada ainda.</p>
         )}
       </div>
@@ -115,6 +117,7 @@ const FinancesTab = ({ nation, finances }) => {
           <li>• Aumente salários para atrair trabalhadores mais rapidamente</li>
           <li>• População feliz cresce mais rápido, gerando mais impostos</li>
           <li>• Construir benfeitorias aumenta a felicidade e os indicadores nacionais</li>
+          <li>• Benfeitorias do mesmo tipo são agrupadas automaticamente para facilitar a gestão</li>
         </ul>
       </div>
     </div>

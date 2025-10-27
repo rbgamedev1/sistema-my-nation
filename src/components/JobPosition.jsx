@@ -1,3 +1,5 @@
+// src/components/JobPosition.jsx
+
 import React, { useState } from 'react';
 
 const JobPosition = ({ job, facilityId, onUpdateSalary }) => {
