@@ -97,12 +97,39 @@ const MyNation = () => {
 
   // Criar ministério
   const createMinistry = (type) => {
+    const ministryCost = 100000;
+    
+    if (nation.treasury < ministryCost) {
+      alert('Tesouro insuficiente! Necessário R$ 100.000 para criar um ministério.');
+      return;
+    }
+
     const ministryTypes = {
-      educacao: { name: 'Educação', icon: '📚', facilities: ['Creche', 'Escola', 'Faculdade'] },
-      saude: { name: 'Saúde', icon: '🏥', facilities: ['Posto de Saúde', 'Hospital', 'Hospital Universitário'] },
-      defesa: { name: 'Defesa', icon: '🛡️', facilities: ['Base Militar', 'Academia Militar', 'Centro de Treinamento'] },
-      agricultura: { name: 'Agricultura', icon: '🌾', facilities: ['Fazenda Cooperativa', 'Centro de Distribuição', 'Instituto de Pesquisa'] },
-      minasEnergia: { name: 'Minas e Energia', icon: '⚡', facilities: ['Mina', 'Refinaria', 'Usina de Energia'] }
+      educacao: { name: 'Educação', icon: '📚', facilities: [
+        { name: 'Creche', cost: 50000 },
+        { name: 'Escola', cost: 100000 },
+        { name: 'Universidade', cost: 500000 }
+      ]},
+      saude: { name: 'Saúde', icon: '🏥', facilities: [
+        { name: 'Posto de Saúde', cost: 75000 },
+        { name: 'Hospital', cost: 300000 },
+        { name: 'Hospital Universitário', cost: 800000 }
+      ]},
+      defesa: { name: 'Defesa', icon: '🛡️', facilities: [
+        { name: 'Base Militar', cost: 200000 },
+        { name: 'Academia Militar', cost: 400000 },
+        { name: 'Centro de Treinamento', cost: 150000 }
+      ]},
+      agricultura: { name: 'Agricultura', icon: '🌾', facilities: [
+        { name: 'Fazenda Cooperativa', cost: 120000 },
+        { name: 'Centro de Distribuição', cost: 180000 },
+        { name: 'Instituto de Pesquisa', cost: 350000 }
+      ]},
+      minasEnergia: { name: 'Minas e Energia', icon: '⚡', facilities: [
+        { name: 'Mina', cost: 250000 },
+        { name: 'Refinaria', cost: 600000 },
+        { name: 'Usina de Energia', cost: 1000000 }
+      ]}
     };
 
     const newMinistry = {
@@ -115,12 +142,18 @@ const MyNation = () => {
 
     setNation(prev => ({
       ...prev,
-      ministries: [...prev.ministries, newMinistry]
+      ministries: [...prev.ministries, newMinistry],
+      treasury: prev.treasury - ministryCost
     }));
   };
 
   // Contratar ministro
   const hireMinister = (ministryId, salary) => {
+    if (nation.treasury < salary) {
+      alert('Tesouro insuficiente para pagar o salário do ministro!');
+      return;
+    }
+
     setNation(prev => ({
       ...prev,
       ministries: prev.ministries.map(m => 
@@ -132,30 +165,50 @@ const MyNation = () => {
         ...prev.workers,
         common: prev.workers.common - 1,
         ministers: prev.workers.ministers + 1
-      }
+      },
+      treasury: prev.treasury - salary
     }));
   };
 
   // Criar benfeitoria
-  const createFacility = (ministryId, facilityType) => {
+  const createFacility = (ministryId, facilityData) => {
+    if (nation.treasury < facilityData.cost) {
+      alert(`Tesouro insuficiente! Necessário R$ ${facilityData.cost.toLocaleString()} para construir ${facilityData.name}.`);
+      return;
+    }
+
     const ministry = nation.ministries.find(m => m.id === ministryId);
     
     const newFacility = {
       id: Date.now(),
       ministryId,
-      type: facilityType,
-      name: facilityType,
+      type: facilityData.name,
+      name: facilityData.name,
+      cost: facilityData.cost,
       employees: []
     };
 
     setNation(prev => ({
       ...prev,
-      facilities: [...prev.facilities, newFacility]
+      facilities: [...prev.facilities, newFacility],
+      treasury: prev.treasury - facilityData.cost
     }));
   };
 
   // Contratar funcionários para benfeitoria
   const hireFacilityEmployees = (facilityId, role, count, salary) => {
+    const totalCost = count * salary;
+    
+    if (nation.treasury < totalCost) {
+      alert(`Tesouro insuficiente! Necessário R$ ${totalCost.toLocaleString()} para pagar os salários.`);
+      return;
+    }
+
+    if (nation.workers.common < count) {
+      alert(`População insuficiente! Você tem apenas ${nation.workers.common.toLocaleString()} trabalhadores disponíveis.`);
+      return;
+    }
+
     setNation(prev => ({
       ...prev,
       facilities: prev.facilities.map(f => 
@@ -170,7 +223,8 @@ const MyNation = () => {
         ...prev.workers,
         common: prev.workers.common - count,
         employees: prev.workers.employees + count
-      }
+      },
+      treasury: prev.treasury - totalCost
     }));
   };
 
@@ -357,106 +411,144 @@ const MyNation = () => {
 
         {activeTab === 'ministries' && (
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-2xl font-bold mb-4">Criar Novo Ministério</h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {['educacao', 'saude', 'defesa', 'agricultura', 'minasEnergia'].map(type => {
-                  const exists = nation.ministries.find(m => m.type === type);
-                  return (
+            {/* Ministérios disponíveis para criar */}
+            {['educacao', 'saude', 'defesa', 'agricultura', 'minasEnergia'].some(type => 
+              !nation.ministries.find(m => m.type === type)
+            ) && (
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-2xl font-bold mb-4">Criar Novo Ministério (Custo: R$ 100.000)</h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {['educacao', 'saude', 'defesa', 'agricultura', 'minasEnergia'].map(type => {
+                    const exists = nation.ministries.find(m => m.type === type);
+                    if (exists) return null;
+                    
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => createMinistry(type)}
+                        className="p-4 rounded-lg font-medium transition bg-blue-600 text-white hover:bg-blue-700"
+                      >
+                        {type === 'educacao' && '📚 Educação'}
+                        {type === 'saude' && '🏥 Saúde'}
+                        {type === 'defesa' && '🛡️ Defesa'}
+                        {type === 'agricultura' && '🌾 Agricultura'}
+                        {type === 'minasEnergia' && '⚡ Minas/Energia'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Ministérios criados */}
+            {nation.ministries.length > 0 && (
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-2xl font-bold mb-4">Ministérios Ativos</h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {nation.ministries.map(ministry => (
                     <button
-                      key={type}
-                      onClick={() => !exists && createMinistry(type)}
-                      disabled={exists}
+                      key={ministry.id}
+                      onClick={() => setSelectedMinistry(ministry.id)}
                       className={`p-4 rounded-lg font-medium transition ${
-                        exists
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                        selectedMinistry === ministry.id
+                          ? 'bg-blue-700 text-white'
+                          : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
                       }`}
                     >
-                      {type === 'educacao' && '📚 Educação'}
-                      {type === 'saude' && '🏥 Saúde'}
-                      {type === 'defesa' && '🛡️ Defesa'}
-                      {type === 'agricultura' && '🌾 Agricultura'}
-                      {type === 'minasEnergia' && '⚡ Minas/Energia'}
+                      {ministry.icon} {ministry.name}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
+            {/* Detalhes do ministério selecionado */}
             {nation.ministries.map(ministry => (
-              <div key={ministry.id} className="bg-white p-6 rounded-lg shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold">{ministry.icon} Ministério de {ministry.name}</h3>
-                    {ministry.minister ? (
-                      <p className="text-green-600">✓ Ministro contratado - R$ {ministry.minister.salary.toLocaleString()}/mês</p>
-                    ) : (
-                      <p className="text-red-600">✗ Sem ministro</p>
+              selectedMinistry === ministry.id && (
+                <div key={ministry.id} className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold">{ministry.icon} Ministério de {ministry.name}</h3>
+                      {ministry.minister ? (
+                        <p className="text-green-600">✓ Ministro contratado - R$ {ministry.minister.salary.toLocaleString()}/mês</p>
+                      ) : (
+                        <p className="text-red-600">✗ Sem ministro</p>
+                      )}
+                    </div>
+                    {!ministry.minister && (
+                      <button
+                        onClick={() => {
+                          const salary = prompt('Salário mensal do ministro (R$):');
+                          if (salary) hireMinister(ministry.id, parseInt(salary));
+                        }}
+                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                      >
+                        Contratar Ministro
+                      </button>
                     )}
                   </div>
-                  {!ministry.minister && (
-                    <button
-                      onClick={() => {
-                        const salary = prompt('Salário mensal do ministro (R$):');
-                        if (salary) hireMinister(ministry.id, parseInt(salary));
-                      }}
-                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                    >
-                      Contratar Ministro
-                    </button>
+
+                  {ministry.minister && (
+                    <div>
+                      <h4 className="font-bold mb-2">Benfeitorias Disponíveis:</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                        {ministry.facilities.map(fac => (
+                          <button
+                            key={fac.name}
+                            onClick={() => createFacility(ministry.id, fac)}
+                            className="bg-blue-500 text-white p-3 rounded hover:bg-blue-600 text-left"
+                          >
+                            <div className="font-bold">{fac.name}</div>
+                            <div className="text-sm">Custo: R$ {fac.cost.toLocaleString()}</div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {nation.facilities.filter(f => f.ministryId === ministry.id).length > 0 && (
+                        <div>
+                          <h4 className="font-bold mb-2">Benfeitorias Construídas:</h4>
+                          <div className="space-y-2">
+                            {nation.facilities.filter(f => f.ministryId === ministry.id).map(facility => (
+                              <div key={facility.id} className="bg-gray-50 p-3 rounded border-l-4 border-blue-500">
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <p className="font-medium">{facility.name}</p>
+                                    <p className="text-sm text-gray-500">Custo de construção: R$ {facility.cost.toLocaleString()}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      const role = prompt('Cargo dos funcionários:');
+                                      if (!role) return;
+                                      const count = prompt('Quantidade:');
+                                      if (!count) return;
+                                      const salary = prompt('Salário mensal individual (R$):');
+                                      if (salary) {
+                                        hireFacilityEmployees(facility.id, role, parseInt(count), parseInt(salary));
+                                      }
+                                    }}
+                                    className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600"
+                                  >
+                                    Contratar Funcionários
+                                  </button>
+                                </div>
+                                {facility.employees.length > 0 && (
+                                  <div className="mt-2 text-sm space-y-1">
+                                    {facility.employees.map((emp, idx) => (
+                                      <p key={idx} className="text-gray-600">
+                                        • {emp.count} {emp.role}(s) - R$ {emp.salary.toLocaleString()}/mês cada (Total: R$ {(emp.count * emp.salary).toLocaleString()}/mês)
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-
-                {ministry.minister && (
-                  <div>
-                    <h4 className="font-bold mb-2">Benfeitorias Disponíveis:</h4>
-                    <div className="flex gap-2 mb-4">
-                      {ministry.facilities.map(fac => (
-                        <button
-                          key={fac}
-                          onClick={() => createFacility(ministry.id, fac)}
-                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                        >
-                          + {fac}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="space-y-2">
-                      {nation.facilities.filter(f => f.ministryId === ministry.id).map(facility => (
-                        <div key={facility.id} className="bg-gray-50 p-3 rounded">
-                          <div className="flex justify-between items-center">
-                            <p className="font-medium">{facility.name}</p>
-                            <button
-                              onClick={() => {
-                                const role = prompt('Cargo dos funcionários:');
-                                const count = prompt('Quantidade:');
-                                const salary = prompt('Salário mensal individual (R$):');
-                                if (role && count && salary) {
-                                  hireFacilityEmployees(facility.id, role, parseInt(count), parseInt(salary));
-                                }
-                              }}
-                              className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600"
-                            >
-                              Contratar Funcionários
-                            </button>
-                          </div>
-                          {facility.employees.length > 0 && (
-                            <div className="mt-2 text-sm">
-                              {facility.employees.map((emp, idx) => (
-                                <p key={idx} className="text-gray-600">
-                                  • {emp.count} {emp.role}(s) - R$ {emp.salary.toLocaleString()}/mês cada
-                                </p>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              )
             ))}
           </div>
         )}
