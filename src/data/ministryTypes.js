@@ -194,7 +194,53 @@ export const MINISTRY_TYPES = {
           { role: 'Manutenção', count: 40, minSalary: 3500 }
         ],
         benefits: { economy: 80, energy: 100, happiness: 20 }
+      } 
+    ]
+  },
+  // Adicione isso ao MINISTRY_TYPES existente
+
+  tecnologia: {
+    name: 'Tecnologia',
+    icon: '💻',
+    facilities: [
+      {
+        name: 'Centro de Pesquisa Básica',
+        cost: 300000,
+        jobs: [
+          { role: 'Diretor de Pesquisa', count: 1, minSalary: 10000 },
+          { role: 'Pesquisador', count: 10, minSalary: 6000 },
+          { role: 'Técnico de Laboratório', count: 8, minSalary: 3000 },
+          { role: 'Assistente', count: 5, minSalary: 2000 }
+        ],
+        benefits: { research: 20, education: 10 },
+        researchSpeed: 1 // Multiplica velocidade de pesquisa
+      },
+      {
+        name: 'Instituto de Tecnologia Avançada',
+        cost: 800000,
+        jobs: [
+          { role: 'Diretor Científico', count: 1, minSalary: 18000 },
+          { role: 'Cientista Sênior', count: 20, minSalary: 12000 },
+          { role: 'Engenheiro', count: 30, minSalary: 8000 },
+          { role: 'Técnico Especializado', count: 25, minSalary: 5000 },
+          { role: 'Suporte', count: 15, minSalary: 3000 }
+        ],
+        benefits: { research: 50, education: 20, economy: 15 },
+        researchSpeed: 2
+      },
+      {
+        name: 'Supercomputador Nacional',
+        cost: 2000000,
+        jobs: [
+          { role: 'Superintendente', count: 1, minSalary: 25000 },
+          { role: 'Cientista de Dados', count: 15, minSalary: 15000 },
+          { role: 'Engenheiro de Sistemas', count: 20, minSalary: 10000 },
+          { role: 'Operador', count: 30, minSalary: 6000 }
+        ],
+        benefits: { research: 100, education: 30, economy: 40 },
+        researchSpeed: 4
       }
     ]
   }
+  
 };

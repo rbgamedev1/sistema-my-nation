@@ -11,5 +11,11 @@ export const GAME_CONFIG = {
     GOOD: 60,
     AVERAGE: 40,
     POOR: 20
+  },
+  // Configurações de Tecnologia
+  TECHNOLOGY: {
+    BASE_RESEARCH_SPEED: 1,
+    MAX_SIMULTANEOUS_RESEARCH: 3, // Máximo de pesquisas simultâneas
+    RESEARCH_COST_MULTIPLIER: 1.0 // Multiplicador de custo de pesquisa
   }
 };
