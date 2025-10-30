@@ -1,4 +1,4 @@
-// src/views/FinancesTab.jsx - ATUALIZADO
+// src/views/FinancesTab.jsx - ATUALIZADO SEM IMPORTAÇÃO AUTOMÁTICA
 
 import React from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -85,7 +85,7 @@ const FinancesTab = ({ nation, finances }) => {
             <div>
               <span className="font-medium text-lg">Despesas Totais</span>
               <p className="text-sm text-gray-600">
-                Salários + Importação de Recursos
+                Apenas salários (sem importação automática)
               </p>
             </div>
             <span className="text-red-600 font-bold text-xl">
@@ -106,20 +106,6 @@ const FinancesTab = ({ nation, finances }) => {
                 - R$ {finances.salaryExpenses.toLocaleString()}
               </span>
             </div>
-
-            {finances.resourcePenalty > 0 && (
-              <div className="flex justify-between items-center p-3 bg-red-100 rounded">
-                <div>
-                  <span className="font-medium">⚠️ Importação de Recursos</span>
-                  <p className="text-xs text-gray-600">
-                    Custo de recursos em déficit (+20% taxa)
-                  </p>
-                </div>
-                <span className="text-red-700 font-bold">
-                  - R$ {finances.resourcePenalty.toLocaleString()}
-                </span>
-              </div>
-            )}
           </div>
           
           <div className={`flex justify-between items-center p-4 rounded-lg font-bold text-xl ${
@@ -236,10 +222,11 @@ const FinancesTab = ({ nation, finances }) => {
         <ul className="space-y-2 text-sm text-gray-700">
           <li>• <strong>Desempregados não geram receita:</strong> Apenas trabalhadores empregados pagam impostos</li>
           <li>• <strong>Aumente salários:</strong> Salários mais altos atraem trabalhadores mais rapidamente</li>
-          <li>• <strong>Evite déficit de recursos:</strong> Importar recursos é 20% mais caro que o preço de mercado</li>
-          <li>• <strong>Invista em infraestrutura:</strong> Benfeitorias aumentam felicidade e criam empregos</li>
+          <li>• <strong>⚠️ SEM IMPORTAÇÃO AUTOMÁTICA:</strong> Recursos em déficit NÃO são importados automaticamente</li>
+          <li>• <strong>Déficit severo:</strong> Falta de recursos críticos (água, alimentos, energia) causa -15% felicidade cada</li>
+          <li>• <strong>Déficit normal:</strong> Falta de outros recursos causa -8% felicidade cada</li>
+          <li>• <strong>Planeje sua produção:</strong> Construa benfeitorias que produzem os recursos que você consome</li>
           <li>• <strong>Recursos excedentes:</strong> São armazenados automaticamente para uso ou comércio futuro</li>
-          <li>• <strong>Não há mais exportação automática:</strong> Gerencie seus estoques com cuidado</li>
           <li>• <strong>Mantenha reserva:</strong> Sempre tenha dinheiro suficiente para pelo menos 3 meses de despesas</li>
           <li>• <strong>Equilíbrio é fundamental:</strong> Invista em todas as áreas para manter a população feliz</li>
         </ul>

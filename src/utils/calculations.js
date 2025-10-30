@@ -1,4 +1,4 @@
-// src/utils/calculations.js - ATUALIZADO
+// src/utils/calculations.js - PENALIDADES BALANCEADAS
 
 import { GAME_CONFIG } from '../data/gameConfig';
 
@@ -88,34 +88,12 @@ export const calculateResourceBalance = (nation) => {
   return { production, consumption, balance, populationConsumption };
 };
 
-// Preços de mercado para recursos
-const RESOURCE_PRICES = {
-  petroleo: 100,
-  gas: 80,
-  ferro: 50,
-  ouro: 500,
-  cobre: 40,
-  food: 20,
-  energy: 30,
-  fuel: 60,
-  agua: 5,
-  terrasAraveis: 0,
-  madeira: 30,
-  furniture: 80,
-  fruits: 25,
-  vegetables: 20,
-  clothing: 50,
-  medicine: 100,
-  floresta: 10
-};
-
 export const calculateFinances = (nation) => {
   if (!nation) return { 
     revenue: 0, 
     taxRevenue: 0,
     expenses: 0,
     salaryExpenses: 0,
-    resourcePenalty: 0,
     balance: 0 
   };
 
@@ -123,19 +101,6 @@ export const calculateFinances = (nation) => {
   const employedWorkers = nation.workers.employed;
   const taxRevenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.EMPLOYMENT_TAX_RATE;
   
-  // Calcular penalidade de recursos em déficit (SEM EXPORTAÇÃO AUTOMÁTICA)
-  const { balance: resourceBalance } = calculateResourceBalance(nation);
-  let resourcePenalty = 0;
-
-  Object.entries(resourceBalance).forEach(([resource, amount]) => {
-    const price = RESOURCE_PRICES[resource] || 0;
-    
-    if (amount < 0) {
-      // Déficit: importar a preço cheio + 20% de taxa
-      resourcePenalty += Math.abs(amount) * price * 1.2;
-    }
-  });
-
   const revenue = taxRevenue;
   
   let salaryExpenses = 0;
@@ -155,14 +120,13 @@ export const calculateFinances = (nation) => {
     });
   });
 
-  const expenses = salaryExpenses + resourcePenalty;
+  const expenses = salaryExpenses;
 
   return { 
     revenue: Math.floor(revenue),
     taxRevenue: Math.floor(taxRevenue),
     expenses: Math.floor(expenses),
     salaryExpenses: Math.floor(salaryExpenses),
-    resourcePenalty: Math.floor(resourcePenalty),
     balance: Math.floor(revenue - expenses) 
   };
 };
@@ -192,10 +156,32 @@ export const calculateHappiness = (nation) => {
   happiness += stats.food * 0.2;
   happiness += (stats.culture || 0) * 0.15;
 
-  // Penalidade por recursos em déficit
+  // PENALIDADES BALANCEADAS POR RECURSOS EM DÉFICIT
   const { balance: resourceBalance } = calculateResourceBalance(nation);
-  const deficitCount = Object.values(resourceBalance).filter(v => v < 0).length;
-  happiness -= deficitCount * 5;
+  
+  // Categorias de recursos
+  const criticalResources = ['agua', 'food', 'energy']; // Essenciais para sobrevivência
+  const importantResources = ['fruits', 'vegetables', 'medicine']; // Importantes para saúde
+  const comfortResources = ['furniture', 'clothing']; // Conforto e qualidade de vida
+  // Recursos industriais (petróleo, ferro, etc) não afetam felicidade diretamente
+  const industrialResources = ['petroleo', 'gas', 'ferro', 'ouro', 'cobre', 'madeira', 'fuel', 'floresta', 'terrasAraveis'];
+  
+  Object.entries(resourceBalance).forEach(([resource, amount]) => {
+    if (amount < 0) {
+      if (criticalResources.includes(resource)) {
+        // Recursos críticos: penalidade severa
+        happiness -= 12; // -12% por recurso crítico em déficit
+      } else if (importantResources.includes(resource)) {
+        // Recursos importantes: penalidade moderada
+        happiness -= 5; // -5% por recurso importante em déficit
+      } else if (comfortResources.includes(resource)) {
+        // Recursos de conforto: penalidade leve
+        happiness -= 2; // -2% por recurso de conforto em déficit
+      }
+      // Recursos industriais em déficit não afetam felicidade da população
+      // Apenas impedem construção/funcionamento de benfeitorias
+    }
+  });
   
   return { happiness: Math.min(100, Math.max(0, happiness)), stats };
 };

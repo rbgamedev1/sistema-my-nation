@@ -333,6 +333,7 @@ export const TECHNOLOGIES = {
       costReduction: 0.6
     }
   },
+  
   // INDÚSTRIA
   automacao_industrial: {
     name: 'Automação Industrial',
@@ -564,7 +565,8 @@ export const TECHNOLOGIES = {
       efficiency: 2.0,
       costReduction: 0.6
     }
-  },
+  }
+};
 
 // Função para verificar se uma tecnologia pode ser pesquisada
 export const canResearch = (techId, nation) => {
@@ -650,7 +652,4 @@ export const applyTechEffects = (facility, researchedTechs) => {
   });
   
   return modifiedFacility;
-}
-  
-  
 };
