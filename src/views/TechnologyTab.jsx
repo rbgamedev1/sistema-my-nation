@@ -1,4 +1,4 @@
-// src/views/TechnologyTab.jsx
+// src/views/TechnologyTab.jsx - ATUALIZADO
 
 import React, { useState } from 'react';
 import { TECHNOLOGIES, canResearch, calculateResearchSpeed } from '../data/technologies';
@@ -130,6 +130,10 @@ const TechnologyTab = ({ nation, onStartResearch }) => {
     { id: 'agricultura', name: 'Agricultura', icon: '🌾' },
     { id: 'defesa', name: 'Defesa', icon: '🛡️' },
     { id: 'minasEnergia', name: 'Energia', icon: '⚡' },
+    { id: 'industria', name: 'Indústria', icon: '🏭' },
+    { id: 'infraestrutura', name: 'Infraestrutura', icon: '🏗️' },
+    { id: 'justica', name: 'Justiça', icon: '⚖️' },
+    { id: 'cultura', name: 'Cultura', icon: '🎭' },
     { id: 'tecnologia', name: 'Tecnologia', icon: '💻' },
     { id: 'geral', name: 'Geral', icon: '⭐' }
   ];
@@ -149,7 +153,7 @@ const TechnologyTab = ({ nation, onStartResearch }) => {
               Para desbloquear pesquisas tecnológicas, você precisa:
             </p>
             <ul className="list-disc list-inside space-y-1 text-gray-700">
-              <li>Criar o Ministério de Tecnologia (R$ 100.000)</li>
+              <li>Criar o Ministério de Tecnologia (R$ {500000})</li>
               <li>Contratar um Ministro de Tecnologia</li>
               <li>Construir instalações de pesquisa para acelerar as descobertas</li>
             </ul>

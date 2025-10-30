@@ -34,6 +34,35 @@ export const TECHNOLOGIES = {
       ]
     }
   },
+  educacao_inclusiva: {
+    name: 'Educação Inclusiva',
+    description: 'Programas especializados para alunos com necessidades especiais',
+    category: 'educacao',
+    cost: 600000,
+    researchTime: 4,
+    icon: '♿',
+    requirements: ['educacao_digital'],
+    effects: {
+      facilities: ['Creche', 'Escola'],
+      benefits: { education: 8, happiness: 10 },
+      efficiency: 1.25
+    }
+  },
+  gamificacao_ensino: {
+    name: 'Gamificação do Ensino',
+    description: 'Uso de jogos e realidade virtual no ensino',
+    category: 'educacao',
+    cost: 800000,
+    researchTime: 4,
+    icon: '🎮',
+    requirements: ['educacao_digital'],
+    effects: {
+      facilities: ['Escola', 'Universidade'],
+      benefits: { education: 10, happiness: 8 },
+      efficiency: 1.3,
+      costReduction: 0.85
+    }
+  },
   
   // SAÚDE
   telemedicina: {
@@ -60,12 +89,41 @@ export const TECHNOLOGIES = {
     icon: '🤖',
     requirements: ['telemedicina'],
     effects: {
-      facilities: ['Hospital', 'Hospital Universitário'],
+      facilities: ['Hospital'],
       benefits: { health: 20, research: 5 },
       efficiency: 1.6,
       unlockJobs: [
         { role: 'Cirurgião Robótico', count: 5, minSalary: 15000 }
       ]
+    }
+  },
+  medicina_preventiva: {
+    name: 'Medicina Preventiva',
+    description: 'Programas de prevenção e saúde pública',
+    category: 'saude',
+    cost: 500000,
+    researchTime: 3,
+    icon: '🩺',
+    requirements: [],
+    effects: {
+      facilities: ['Posto de Saúde', 'Hospital'],
+      benefits: { health: 12, happiness: 6 },
+      efficiency: 1.2,
+      costReduction: 0.8
+    }
+  },
+  terapia_genica: {
+    name: 'Terapia Gênica',
+    description: 'Tratamento de doenças através da modificação genética',
+    category: 'saude',
+    cost: 2000000,
+    researchTime: 7,
+    icon: '🧬',
+    requirements: ['cirurgia_robotica'],
+    effects: {
+      facilities: ['Hospital', 'Fábrica de Medicamentos'],
+      benefits: { health: 30, research: 15 },
+      efficiency: 1.8
     }
   },
   
@@ -79,7 +137,7 @@ export const TECHNOLOGIES = {
     icon: '🚁',
     requirements: [],
     effects: {
-      facilities: ['Fazenda Cooperativa'],
+      facilities: ['Fazenda de Grãos', 'Fazenda de Frutas', 'Fazenda de Vegetais'],
       benefits: { food: 15, economy: 10 },
       efficiency: 1.4,
       costReduction: 0.8
@@ -94,12 +152,42 @@ export const TECHNOLOGIES = {
     icon: '🧬',
     requirements: ['agricultura_precisao'],
     effects: {
-      facilities: ['Fazenda Cooperativa', 'Instituto de Pesquisa'],
+      facilities: ['Fazenda de Grãos', 'Fazenda de Frutas', 'Fazenda de Vegetais'],
       benefits: { food: 30, research: 10 },
       efficiency: 2.0,
       unlockJobs: [
         { role: 'Geneticista Agrícola', count: 8, minSalary: 9000 }
       ]
+    }
+  },
+  hidroponia_avancada: {
+    name: 'Hidroponia Avançada',
+    description: 'Cultivo sem solo com alta eficiência',
+    category: 'agricultura',
+    cost: 900000,
+    researchTime: 4,
+    icon: '💧',
+    requirements: ['agricultura_precisao'],
+    effects: {
+      facilities: ['Fazenda de Vegetais', 'Fazenda de Frutas'],
+      benefits: { food: 20 },
+      efficiency: 1.6,
+      costReduction: 0.7
+    }
+  },
+  agricultura_vertical: {
+    name: 'Agricultura Vertical',
+    description: 'Fazendas em prédios de múltiplos andares',
+    category: 'agricultura',
+    cost: 1500000,
+    researchTime: 6,
+    icon: '🏢',
+    requirements: ['hidroponia_avancada', 'ogm_avancado'],
+    effects: {
+      facilities: ['Fazenda de Grãos', 'Fazenda de Frutas', 'Fazenda de Vegetais'],
+      benefits: { food: 40, economy: 20 },
+      efficiency: 2.5,
+      costReduction: 0.6
     }
   },
   
@@ -113,7 +201,7 @@ export const TECHNOLOGIES = {
     icon: '🛡️',
     requirements: [],
     effects: {
-      facilities: ['Base Militar', 'Centro de Treinamento'],
+      facilities: ['Base Militar', 'Academia Militar'],
       benefits: { security: 15, economy: 5 },
       efficiency: 1.3,
       unlockJobs: [
@@ -134,6 +222,35 @@ export const TECHNOLOGIES = {
       benefits: { security: 40 },
       efficiency: 1.8,
       costReduction: 1.2
+    }
+  },
+  drones_militares: {
+    name: 'Drones Militares',
+    description: 'Veículos aéreos não tripulados para vigilância e defesa',
+    category: 'defesa',
+    cost: 1200000,
+    researchTime: 5,
+    icon: '🚁',
+    requirements: ['defesa_cibernetica'],
+    effects: {
+      facilities: ['Base Militar'],
+      benefits: { security: 25 },
+      efficiency: 1.5,
+      costReduction: 0.85
+    }
+  },
+  sistemas_antimisseis: {
+    name: 'Sistemas Antimísseis',
+    description: 'Defesa avançada contra ataques aéreos',
+    category: 'defesa',
+    cost: 2500000,
+    researchTime: 8,
+    icon: '🎯',
+    requirements: ['armamento_moderno', 'drones_militares'],
+    effects: {
+      facilities: ['Base Militar'],
+      benefits: { security: 50 },
+      efficiency: 2.0
     }
   },
   
@@ -186,6 +303,221 @@ export const TECHNOLOGIES = {
       costReduction: 0.5
     }
   },
+  perfuracao_profunda: {
+    name: 'Perfuração Profunda',
+    description: 'Acesso a recursos em grandes profundidades',
+    category: 'minasEnergia',
+    cost: 1200000,
+    researchTime: 5,
+    icon: '🔧',
+    requirements: ['extracao_inteligente'],
+    effects: {
+      facilities: ['Mina', 'Poço de Petróleo', 'Poço Artesiano'],
+      benefits: { resources: 35, economy: 20 },
+      efficiency: 1.7,
+      costReduction: 0.8
+    }
+  },
+  supercondutores: {
+    name: 'Supercondutores',
+    description: 'Transmissão de energia sem perdas',
+    category: 'minasEnergia',
+    cost: 2000000,
+    researchTime: 7,
+    icon: '⚡',
+    requirements: ['energia_renovavel'],
+    effects: {
+      facilities: ['Usina de Energia', 'Rede Elétrica'],
+      benefits: { energy: 40, economy: 30 },
+      efficiency: 1.8,
+      costReduction: 0.6
+    }
+  },
+  // INDÚSTRIA
+  automacao_industrial: {
+    name: 'Automação Industrial',
+    description: 'Robôs e IA na produção',
+    category: 'industria',
+    cost: 1000000,
+    researchTime: 5,
+    icon: '🤖',
+    requirements: [],
+    effects: {
+      facilities: ['Serraria', 'Fábrica de Móveis', 'Fábrica de Roupas'],
+      benefits: { economy: 30 },
+      efficiency: 1.6,
+      costReduction: 0.7
+    }
+  },
+  impressao_3d_industrial: {
+    name: 'Impressão 3D Industrial',
+    description: 'Produção rápida e personalizada',
+    category: 'industria',
+    cost: 1500000,
+    researchTime: 6,
+    icon: '🖨️',
+    requirements: ['automacao_industrial'],
+    effects: {
+      facilities: ['Fábrica de Móveis', 'Fábrica de Roupas'],
+      benefits: { economy: 40 },
+      efficiency: 2.0,
+      costReduction: 0.6
+    }
+  },
+  materiais_avancados: {
+    name: 'Materiais Avançados',
+    description: 'Ligas e compostos de alta performance',
+    category: 'industria',
+    cost: 1200000,
+    researchTime: 5,
+    icon: '⚗️',
+    requirements: [],
+    effects: {
+      facilities: ['Serraria', 'Fábrica de Móveis'],
+      benefits: { economy: 25, resources: 15 },
+      efficiency: 1.5,
+      costReduction: 0.8
+    }
+  },
+
+  // INFRAESTRUTURA
+  cidades_inteligentes: {
+    name: 'Cidades Inteligentes',
+    description: 'IoT e automação urbana',
+    category: 'infraestrutura',
+    cost: 2000000,
+    researchTime: 7,
+    icon: '🌆',
+    requirements: [],
+    effects: {
+      facilities: ['Rede Elétrica', 'Rede de Transporte Público', 'Estação de Tratamento de Água'],
+      benefits: { happiness: 30, economy: 25 },
+      efficiency: 1.6,
+      costReduction: 0.7
+    }
+  },
+  transporte_sustentavel: {
+    name: 'Transporte Sustentável',
+    description: 'Veículos elétricos e híbridos',
+    category: 'infraestrutura',
+    cost: 1500000,
+    researchTime: 6,
+    icon: '🚇',
+    requirements: ['energia_renovavel'],
+    effects: {
+      facilities: ['Rede de Transporte Público'],
+      benefits: { happiness: 25, economy: 20 },
+      efficiency: 1.5,
+      costReduction: 0.65
+    }
+  },
+  gestao_residuos_avancada: {
+    name: 'Gestão de Resíduos Avançada',
+    description: 'Reciclagem e conversão de lixo em energia',
+    category: 'infraestrutura',
+    cost: 1000000,
+    researchTime: 5,
+    icon: '♻️',
+    requirements: [],
+    effects: {
+      facilities: ['Centro de Reciclagem'],
+      benefits: { happiness: 20, economy: 15, health: 10 },
+      efficiency: 2.0,
+      costReduction: 0.6
+    }
+  },
+
+  // JUSTIÇA
+  justica_digital: {
+    name: 'Justiça Digital',
+    description: 'Processos eletrônicos e audiências virtuais',
+    category: 'justica',
+    cost: 800000,
+    researchTime: 4,
+    icon: '💻',
+    requirements: [],
+    effects: {
+      facilities: ['Tribunal de Justiça'],
+      benefits: { security: 15 },
+      efficiency: 1.5,
+      costReduction: 0.7
+    }
+  },
+  sistema_penitenciario_moderno: {
+    name: 'Sistema Penitenciário Moderno',
+    description: 'Reabilitação e reinserção social',
+    category: 'justica',
+    cost: 1200000,
+    researchTime: 5,
+    icon: '🏛️',
+    requirements: [],
+    effects: {
+      facilities: ['Presídio'],
+      benefits: { security: 25, happiness: 15 },
+      efficiency: 1.4,
+      costReduction: 0.8
+    }
+  },
+  policiamento_inteligente: {
+    name: 'Policiamento Inteligente',
+    description: 'Análise preditiva e vigilância por IA',
+    category: 'justica',
+    cost: 1000000,
+    researchTime: 5,
+    icon: '🚔',
+    requirements: ['justica_digital'],
+    effects: {
+      facilities: ['Delegacia de Polícia'],
+      benefits: { security: 30 },
+      efficiency: 1.6,
+      costReduction: 0.75
+    }
+  },
+
+  // CULTURA
+  realidade_virtual_cultural: {
+    name: 'Realidade Virtual Cultural',
+    description: 'Experiências imersivas em museus e teatros',
+    category: 'cultura',
+    cost: 1000000,
+    researchTime: 4,
+    icon: '🥽',
+    requirements: [],
+    effects: {
+      facilities: ['Museu Nacional', 'Teatro Municipal'],
+      benefits: { culture: 25, happiness: 20 },
+      efficiency: 1.5,
+      costReduction: 0.8
+    }
+  },
+  preservacao_digital: {
+    name: 'Preservação Digital',
+    description: 'Digitalização e conservação do patrimônio cultural',
+    category: 'cultura',
+    cost: 800000,
+    researchTime: 4,
+    icon: '💾',
+    requirements: [],
+    effects: {
+      facilities: ['Biblioteca Pública', 'Museu Nacional'],
+      benefits: { culture: 20, education: 15 },
+      efficiency: 1.3
+    }
+  },
+  esportes_alta_performance: {
+    name: 'Esportes de Alta Performance',
+    description: 'Ciência do esporte e treinamento avançado',
+    category: 'cultura',
+    cost: 1200000,
+    researchTime: 5,
+    icon: '🏅',
+    requirements: [],
+    effects: {
+      facilities: ['Estádio Esportivo'],
+      benefits: { culture: 30, happiness: 25, health: 15 },
+      efficiency: 1.6
+    }
+  },
   
   // TECNOLOGIAS GERAIS
   inteligencia_artificial: {
@@ -232,30 +564,25 @@ export const TECHNOLOGIES = {
       efficiency: 2.0,
       costReduction: 0.6
     }
-  }
-};
+  },
 
 // Função para verificar se uma tecnologia pode ser pesquisada
 export const canResearch = (techId, nation) => {
   const tech = TECHNOLOGIES[techId];
   if (!tech) return { can: false, reason: 'Tecnologia não encontrada' };
   
-  // Verificar se já foi pesquisada
   if (nation.technologies?.researched?.includes(techId)) {
     return { can: false, reason: 'Já pesquisada' };
   }
   
-  // Verificar se está sendo pesquisada
   if (nation.technologies?.researching?.some(r => r.id === techId)) {
     return { can: false, reason: 'Já em pesquisa' };
   }
   
-  // Verificar dinheiro
   if (nation.treasury < tech.cost) {
     return { can: false, reason: `Necessário R$ ${tech.cost.toLocaleString()}` };
   }
   
-  // Verificar requisitos
   for (const reqId of tech.requirements) {
     if (!nation.technologies?.researched?.includes(reqId)) {
       return { 
@@ -265,7 +592,6 @@ export const canResearch = (techId, nation) => {
     }
   }
   
-  // Verificar se tem Ministério de Tecnologia
   const hasTechMinistry = nation.ministries?.some(m => m.type === 'tecnologia' && m.minister);
   if (!hasTechMinistry) {
     return { 
@@ -277,11 +603,9 @@ export const canResearch = (techId, nation) => {
   return { can: true };
 };
 
-// Função para calcular velocidade de pesquisa
 export const calculateResearchSpeed = (nation) => {
   let speed = 1;
   
-  // Somar velocidade de todas as instalações de tecnologia
   if (nation.facilities) {
     nation.facilities
       .filter(f => f.researchSpeed && f.researchSpeed > 0)
@@ -296,7 +620,6 @@ export const calculateResearchSpeed = (nation) => {
   return speed;
 };
 
-// Função para aplicar efeitos de tecnologia em uma benfeitoria
 export const applyTechEffects = (facility, researchedTechs) => {
   let modifiedFacility = { ...facility };
   
@@ -308,12 +631,10 @@ export const applyTechEffects = (facility, researchedTechs) => {
     const tech = TECHNOLOGIES[techId];
     if (!tech) return;
     
-    // Verificar se a tecnologia se aplica a esta benfeitoria
     const applies = tech.effects.facilities === 'ALL' || 
                    (Array.isArray(tech.effects.facilities) && tech.effects.facilities.includes(facility.name));
     
     if (applies) {
-      // Aplicar benefícios adicionais
       if (tech.effects.benefits) {
         modifiedFacility.benefits = modifiedFacility.benefits || {};
         Object.entries(tech.effects.benefits).forEach(([key, val]) => {
@@ -321,7 +642,6 @@ export const applyTechEffects = (facility, researchedTechs) => {
         });
       }
       
-      // Marcar tecnologias aplicadas
       modifiedFacility.appliedTechs = modifiedFacility.appliedTechs || [];
       if (!modifiedFacility.appliedTechs.includes(techId)) {
         modifiedFacility.appliedTechs.push(techId);
@@ -330,4 +650,7 @@ export const applyTechEffects = (facility, researchedTechs) => {
   });
   
   return modifiedFacility;
+}
+  
+  
 };

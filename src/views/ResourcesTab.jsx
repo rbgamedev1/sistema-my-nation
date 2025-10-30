@@ -1,11 +1,12 @@
-// src/views/ResourcesTab.jsx - COMPLETO CORRIGIDO
+// src/views/ResourcesTab.jsx - ATUALIZADO
 
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Users } from 'lucide-react';
 import { calculateResourceBalance } from '../utils/calculations';
+import { GAME_CONFIG } from '../data/gameConfig';
 
 const ResourcesTab = ({ nation }) => {
-  const { production, consumption, balance } = calculateResourceBalance(nation);
+  const { production, consumption, balance, populationConsumption } = calculateResourceBalance(nation);
 
   const resourceIcons = {
     agua: '💧',
@@ -56,7 +57,7 @@ const ResourcesTab = ({ nation }) => {
         <h2 className="text-2xl font-bold mb-4">📊 Balanço de Recursos</h2>
         <p className="text-gray-600 mb-4">
           Recursos são gerados pelo seu território e benfeitorias, e consumidos pela população e infraestrutura.
-          Excedentes podem ser exportados para gerar receita adicional.
+          Recursos excedentes podem ser armazenados para uso futuro ou comércio com outras nações.
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -72,11 +73,64 @@ const ResourcesTab = ({ nation }) => {
               {Object.values(balance).filter(v => v < 0).length}
             </p>
           </div>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600">Consumo da População</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {Object.keys(populationConsumption).length}
+            </p>
+            <p className="text-xs text-gray-500">tipos de recursos</p>
+          </div>
           <div className="bg-purple-50 p-4 rounded-lg">
             <p className="text-sm text-gray-600">Total de Recursos</p>
             <p className="text-2xl font-bold text-purple-600">
               {allResources.length}
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Requisitos da População */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg shadow border-2 border-blue-300">
+        <div className="flex items-center gap-3 mb-4">
+          <Users className="text-blue-600" size={32} />
+          <div>
+            <h3 className="text-xl font-bold text-blue-900">Requisitos da População</h3>
+            <p className="text-sm text-gray-600">
+              {nation.population.toLocaleString()} habitantes consumindo recursos mensalmente
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg mb-3">
+          <p className="text-sm text-gray-700 mb-3">
+            <strong>Base de cálculo:</strong> Consumo per capita por 1.000 habitantes/mês
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {Object.entries(GAME_CONFIG.POPULATION_CONSUMPTION).map(([resource, amountPer1000]) => (
+              <div key={resource} className="bg-gray-50 p-3 rounded border-l-4 border-blue-400">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">{resourceIcons[resource] || '📦'}</span>
+                  <span className="text-xs font-medium">{resourceNames[resource]}</span>
+                </div>
+                <p className="text-sm text-gray-600">{amountPer1000} / 1k hab</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg">
+          <p className="text-sm font-bold text-gray-700 mb-2">Consumo Total da População Este Mês:</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {Object.entries(populationConsumption).map(([resource, amount]) => (
+              <div key={resource} className="bg-blue-50 p-3 rounded">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-2xl">{resourceIcons[resource] || '📦'}</span>
+                  <span className="text-xs font-medium">{resourceNames[resource]}</span>
+                </div>
+                <p className="text-lg font-bold text-blue-700">{amount.toFixed(1)}</p>
+                <p className="text-xs text-gray-500">unidades/mês</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -115,6 +169,8 @@ const ResourcesTab = ({ nation }) => {
             const prod = production[resource] || 0;
             const cons = consumption[resource] || 0;
             const bal = balance[resource] || 0;
+            const popCons = populationConsumption[resource] || 0;
+            const infraCons = cons - popCons;
             const isPositive = bal > 0;
             const isNegative = bal < 0;
 
@@ -133,8 +189,8 @@ const ResourcesTab = ({ nation }) => {
                     <div>
                       <h4 className="font-bold text-lg">{resourceNames[resource] || resource}</h4>
                       <p className="text-sm text-gray-600">
-                        {isPositive && '✅ Exportando excedente'}
-                        {isNegative && '⚠️ Importando faltante'}
+                        {isPositive && '✅ Excedente armazenado'}
+                        {isNegative && '⚠️ Importando faltante (-5% felicidade)'}
                         {!isPositive && !isNegative && '⚖️ Equilibrado'}
                       </p>
                     </div>
@@ -153,7 +209,7 @@ const ResourcesTab = ({ nation }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 mb-3">
                   <div className="bg-white p-3 rounded">
                     <p className="text-xs text-gray-600 mb-1">Produção</p>
                     <p className="text-lg font-bold text-green-600">
@@ -168,7 +224,7 @@ const ResourcesTab = ({ nation }) => {
                   </div>
 
                   <div className="bg-white p-3 rounded">
-                    <p className="text-xs text-gray-600 mb-1">Consumo</p>
+                    <p className="text-xs text-gray-600 mb-1">Consumo Total</p>
                     <p className="text-lg font-bold text-red-600">
                       -{cons.toFixed(1)}
                     </p>
@@ -181,9 +237,24 @@ const ResourcesTab = ({ nation }) => {
                   </div>
                 </div>
 
-                {isPositive && (
-                  <div className="mt-3 p-2 bg-green-100 rounded text-sm text-green-800">
-                    💰 Receita de exportação: ~R$ {(bal * 0.5 * getResourcePrice(resource)).toFixed(0)}/mês
+                {/* Breakdown do consumo */}
+                {(popCons > 0 || infraCons > 0) && (
+                  <div className="bg-white p-3 rounded text-sm">
+                    <p className="font-medium text-gray-700 mb-2">Detalhamento do Consumo:</p>
+                    <div className="space-y-1">
+                      {popCons > 0 && (
+                        <div className="flex justify-between text-blue-600">
+                          <span>👥 População ({nation.population.toLocaleString()} hab):</span>
+                          <span className="font-bold">{popCons.toFixed(1)} unidades</span>
+                        </div>
+                      )}
+                      {infraCons > 0 && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>🏗️ Infraestrutura ({nation.facilities.length} benfeitorias):</span>
+                          <span className="font-bold">{infraCons.toFixed(1)} unidades</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -223,13 +294,14 @@ const ResourcesTab = ({ nation }) => {
       <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded">
         <h3 className="font-bold text-lg mb-2">💡 Gerenciamento de Recursos</h3>
         <ul className="space-y-2 text-sm text-gray-700">
-          <li>• <strong>Água:</strong> Essencial para toda infraestrutura. Seu território gera naturalmente.</li>
-          <li>• <strong>Alimentos:</strong> Construa Fazendas em territórios com terras aráveis.</li>
-          <li>• <strong>Energia:</strong> Construa Usinas de Energia. Consomem petróleo e água.</li>
-          <li>• <strong>Petróleo/Gás:</strong> Construa Poços de Petróleo em territórios ricos neste recurso.</li>
-          <li>• <strong>Minérios:</strong> Construa Minas para extrair ferro, ouro e cobre.</li>
-          <li>• <strong>Excedentes:</strong> 50% do excedente é automaticamente exportado gerando receita.</li>
-          <li>• <strong>Déficit:</strong> Recursos em falta causam penalidades financeiras e reduzem felicidade.</li>
+          <li>• <strong>Água:</strong> Seu território pode gerar naturalmente, ou construa Poços Artesianos e Estações de Tratamento</li>
+          <li>• <strong>Alimentos:</strong> Construa Fazendas em territórios com terras aráveis</li>
+          <li>• <strong>Energia:</strong> Construa Usinas de Energia. Consomem petróleo e água</li>
+          <li>• <strong>Petróleo/Gás:</strong> Construa Poços de Petróleo em territórios ricos neste recurso</li>
+          <li>• <strong>Minérios:</strong> Construa Minas para extrair ferro, ouro e cobre</li>
+          <li>• <strong>Consumo da População:</strong> Cresce proporcionalmente ao número de habitantes</li>
+          <li>• <strong>Excedentes:</strong> São armazenados automaticamente para uso futuro</li>
+          <li>• <strong>Déficit:</strong> Recursos em falta causam penalidades financeiras e reduzem felicidade em 5% por recurso</li>
           <li>• <strong>Multiplayer:</strong> No futuro você poderá comercializar recursos com outras nações!</li>
         </ul>
       </div>

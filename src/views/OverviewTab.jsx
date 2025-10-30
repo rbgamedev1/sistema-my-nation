@@ -1,4 +1,4 @@
-// src/views/OverviewTab.jsx
+// src/views/OverviewTab.jsx - ATUALIZADO
 
 import React from 'react';
 import { Users, Briefcase, TrendingUp, Trophy } from 'lucide-react';
@@ -18,6 +18,16 @@ const StatsCard = ({ title, value, icon: Icon, color, subtitle }) => (
 );
 
 const OverviewTab = ({ nation, finances }) => {
+  // Calcular total de vagas disponíveis
+  const totalJobs = nation.facilities.reduce((sum, f) => 
+    sum + f.jobs.reduce((s, j) => s + j.count, 0), 0
+  );
+
+  // Taxa de emprego correta: empregados / trabalhadores comuns (não população total)
+  const employmentRate = nation.workers.common > 0 
+    ? (nation.workers.employed / nation.workers.common) * 100 
+    : 0;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -26,14 +36,14 @@ const OverviewTab = ({ nation, finances }) => {
           value={nation.population.toLocaleString()}
           icon={Users}
           color="text-blue-500"
-          subtitle={`${nation.workers.employed.toLocaleString()} empregados`}
+          subtitle={`${nation.workers.common.toLocaleString()} trabalhadores`}
         />
         <StatsCard
-          title="Trabalhadores Disponíveis"
-          value={(nation.workers.common - nation.workers.employed).toLocaleString()}
+          title="Empregados"
+          value={nation.workers.employed.toLocaleString()}
           icon={Briefcase}
           color="text-green-500"
-          subtitle="Procurando emprego"
+          subtitle={`${(nation.workers.common - nation.workers.employed).toLocaleString()} desempregados`}
         />
         <StatsCard
           title="Balanço Mensal"
@@ -73,7 +83,7 @@ const OverviewTab = ({ nation, finances }) => {
             { name: 'Economia', value: nation.stats.economy, icon: '💰' },
             { name: 'Pesquisa', value: nation.stats.research, icon: '🔬' },
             { name: 'Energia', value: nation.stats.energy, icon: '⚡' },
-            { name: 'Recursos', value: nation.stats.resources, icon: '⛏️' }
+            { name: 'Cultura', value: nation.stats.culture || 0, icon: '🎭' }
           ].map(stat => (
             <div key={stat.name} className="bg-gray-50 p-4 rounded">
               <div className="flex items-center gap-2 mb-2">
@@ -106,16 +116,18 @@ const OverviewTab = ({ nation, finances }) => {
           </div>
           <div className="flex justify-between p-3 bg-purple-50 rounded">
             <span>Total de Vagas de Emprego</span>
-            <span className="font-bold">
-              {nation.facilities.reduce((sum, f) => 
-                sum + f.jobs.reduce((s, j) => s + j.count, 0), 0
-              ).toLocaleString()}
-            </span>
+            <span className="font-bold">{totalJobs.toLocaleString()}</span>
           </div>
           <div className="flex justify-between p-3 bg-yellow-50 rounded">
-            <span>Taxa de Emprego</span>
+            <span>Taxa de Emprego (empregados/trabalhadores)</span>
             <span className="font-bold">
-              {((nation.workers.employed / nation.population) * 100).toFixed(1)}%
+              {employmentRate.toFixed(1)}%
+            </span>
+          </div>
+          <div className="flex justify-between p-3 bg-orange-50 rounded">
+            <span>Taxa de Preenchimento de Vagas</span>
+            <span className="font-bold">
+              {totalJobs > 0 ? ((nation.workers.employed / totalJobs) * 100).toFixed(1) : 0}%
             </span>
           </div>
         </div>

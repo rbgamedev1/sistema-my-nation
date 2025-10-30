@@ -1,4 +1,4 @@
-// src/data/ministryTypes.js (EXPANDIDO COM NOVOS RECURSOS)
+// src/data/ministryTypes.js
 
 export const MINISTRY_TYPES = {
   educacao: {
@@ -228,6 +228,18 @@ export const MINISTRY_TYPES = {
     icon: '⚡',
     facilities: [
       {
+        name: 'Poço Artesiano',
+        cost: 250000,
+        jobs: [
+          { role: 'Engenheiro Hidráulico', count: 2, minSalary: 6000 },
+          { role: 'Técnico de Perfuração', count: 5, minSalary: 3000 },
+          { role: 'Operador', count: 8, minSalary: 2200 }
+        ],
+        benefits: { health: 10, happiness: 15 },
+        resourceConsumption: { energy: 50 },
+        resourceProduction: { agua: 1000 }
+      },
+      {
         name: 'Mina',
         cost: 800000,
         jobs: [
@@ -326,6 +338,179 @@ export const MINISTRY_TYPES = {
         benefits: { research: 100, education: 30, economy: 40 },
         researchSpeed: 4,
         resourceConsumption: { agua: 300, energy: 1000 }
+      }
+    ]
+  },
+
+  infraestrutura: {
+    name: 'Infraestrutura',
+    icon: '🏗️',
+    facilities: [
+      {
+        name: 'Estação de Tratamento de Água',
+        cost: 800000,
+        jobs: [
+          { role: 'Engenheiro Ambiental', count: 3, minSalary: 7000 },
+          { role: 'Técnico Químico', count: 10, minSalary: 3500 },
+          { role: 'Operador', count: 20, minSalary: 2500 }
+        ],
+        benefits: { health: 20, happiness: 15 },
+        resourceConsumption: { energy: 200 },
+        resourceProduction: { agua: 2000 }
+      },
+      {
+        name: 'Rede de Esgoto',
+        cost: 1200000,
+        jobs: [
+          { role: 'Engenheiro Civil', count: 5, minSalary: 8000 },
+          { role: 'Técnico', count: 15, minSalary: 3500 },
+          { role: 'Operário', count: 40, minSalary: 2200 }
+        ],
+        benefits: { health: 30, happiness: 20 },
+        resourceConsumption: { agua: 100, energy: 150 }
+      },
+      {
+        name: 'Rede Elétrica',
+        cost: 2000000,
+        jobs: [
+          { role: 'Engenheiro Eletricista', count: 10, minSalary: 9000 },
+          { role: 'Eletricista', count: 50, minSalary: 4000 },
+          { role: 'Técnico', count: 30, minSalary: 3000 }
+        ],
+        benefits: { happiness: 25, economy: 30 },
+        resourceConsumption: { energy: 100, ferro: 50, cobre: 100 }
+      },
+      {
+        name: 'Rede de Transporte Público',
+        cost: 1500000,
+        jobs: [
+          { role: 'Gerente de Operações', count: 1, minSalary: 10000 },
+          { role: 'Motorista', count: 100, minSalary: 3000 },
+          { role: 'Mecânico', count: 30, minSalary: 3500 },
+          { role: 'Atendente', count: 50, minSalary: 2000 }
+        ],
+        benefits: { happiness: 30, economy: 25 },
+        resourceConsumption: { fuel: 500, energy: 100 }
+      },
+      {
+        name: 'Centro de Reciclagem',
+        cost: 600000,
+        jobs: [
+          { role: 'Coordenador', count: 2, minSalary: 5000 },
+          { role: 'Operador', count: 40, minSalary: 2200 },
+          { role: 'Motorista', count: 20, minSalary: 2800 }
+        ],
+        benefits: { happiness: 15, economy: 10, health: 10 },
+        resourceConsumption: { agua: 50, energy: 100 }
+      }
+    ]
+  },
+
+  justica: {
+    name: 'Justiça',
+    icon: '⚖️',
+    facilities: [
+      {
+        name: 'Tribunal de Justiça',
+        cost: 1000000,
+        jobs: [
+          { role: 'Juiz', count: 10, minSalary: 15000 },
+          { role: 'Promotor', count: 15, minSalary: 12000 },
+          { role: 'Defensor Público', count: 20, minSalary: 10000 },
+          { role: 'Escrivão', count: 30, minSalary: 3500 },
+          { role: 'Oficial de Justiça', count: 25, minSalary: 4000 }
+        ],
+        benefits: { security: 25, happiness: 15 },
+        resourceConsumption: { agua: 100, energy: 150, furniture: 20 }
+      },
+      {
+        name: 'Delegacia de Polícia',
+        cost: 500000,
+        jobs: [
+          { role: 'Delegado', count: 1, minSalary: 12000 },
+          { role: 'Investigador', count: 10, minSalary: 6000 },
+          { role: 'Policial', count: 50, minSalary: 4000 },
+          { role: 'Escrivão', count: 8, minSalary: 3000 }
+        ],
+        benefits: { security: 20, happiness: 10 },
+        resourceConsumption: { agua: 80, energy: 100, fuel: 100 }
+      },
+      {
+        name: 'Presídio',
+        cost: 1500000,
+        jobs: [
+          { role: 'Diretor', count: 1, minSalary: 10000 },
+          { role: 'Agente Penitenciário', count: 100, minSalary: 4500 },
+          { role: 'Psicólogo', count: 10, minSalary: 5000 },
+          { role: 'Assistente Social', count: 15, minSalary: 4000 }
+        ],
+        benefits: { security: 30 },
+        resourceConsumption: { agua: 300, energy: 200, food: 500 }
+      }
+    ]
+  },
+
+  cultura: {
+    name: 'Cultura',
+    icon: '🎭',
+    facilities: [
+      {
+        name: 'Biblioteca Pública',
+        cost: 400000,
+        jobs: [
+          { role: 'Diretor', count: 1, minSalary: 6000 },
+          { role: 'Bibliotecário', count: 10, minSalary: 3500 },
+          { role: 'Assistente', count: 8, minSalary: 2000 }
+        ],
+        benefits: { education: 15, happiness: 20, culture: 25 },
+        resourceConsumption: { agua: 50, energy: 80, furniture: 15 }
+      },
+      {
+        name: 'Museu Nacional',
+        cost: 2000000,
+        jobs: [
+          { role: 'Curador', count: 5, minSalary: 8000 },
+          { role: 'Historiador', count: 10, minSalary: 6000 },
+          { role: 'Guia', count: 20, minSalary: 2500 },
+          { role: 'Segurança', count: 15, minSalary: 2800 }
+        ],
+        benefits: { education: 25, happiness: 30, culture: 40 },
+        resourceConsumption: { agua: 100, energy: 200, furniture: 30 }
+      },
+      {
+        name: 'Teatro Municipal',
+        cost: 1500000,
+        jobs: [
+          { role: 'Diretor Artístico', count: 1, minSalary: 10000 },
+          { role: 'Ator/Atriz', count: 30, minSalary: 4000 },
+          { role: 'Técnico', count: 20, minSalary: 3000 },
+          { role: 'Produtor', count: 5, minSalary: 5000 }
+        ],
+        benefits: { happiness: 35, culture: 45 },
+        resourceConsumption: { agua: 80, energy: 250, furniture: 20 }
+      },
+      {
+        name: 'Centro Cultural',
+        cost: 800000,
+        jobs: [
+          { role: 'Coordenador', count: 2, minSalary: 6000 },
+          { role: 'Instrutor', count: 20, minSalary: 3500 },
+          { role: 'Assistente', count: 10, minSalary: 2200 }
+        ],
+        benefits: { education: 10, happiness: 25, culture: 30 },
+        resourceConsumption: { agua: 60, energy: 120, furniture: 15 }
+      },
+      {
+        name: 'Estádio Esportivo',
+        cost: 3000000,
+        jobs: [
+          { role: 'Diretor', count: 1, minSalary: 15000 },
+          { role: 'Treinador', count: 20, minSalary: 8000 },
+          { role: 'Atleta', count: 100, minSalary: 5000 },
+          { role: 'Manutenção', count: 50, minSalary: 2500 }
+        ],
+        benefits: { happiness: 40, culture: 35, health: 20 },
+        resourceConsumption: { agua: 500, energy: 400, furniture: 40 }
       }
     ]
   }

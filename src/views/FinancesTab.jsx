@@ -1,4 +1,4 @@
-// src/views/FinancesTab.jsx - COMPLETO CORRIGIDO
+// src/views/FinancesTab.jsx - ATUALIZADO
 
 import React from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -55,7 +55,7 @@ const FinancesTab = ({ nation, finances }) => {
             <div>
               <span className="font-medium text-lg">Receitas Totais</span>
               <p className="text-sm text-gray-600">
-                Impostos + Exportação de Recursos
+                Impostos de trabalhadores empregados
               </p>
             </div>
             <span className="text-green-600 font-bold text-xl">
@@ -79,20 +79,6 @@ const FinancesTab = ({ nation, finances }) => {
                 + R$ {finances.taxRevenue.toLocaleString()}
               </span>
             </div>
-
-            {finances.resourceRevenue > 0 && (
-              <div className="flex justify-between items-center p-3 bg-green-100 rounded">
-                <div>
-                  <span className="font-medium">📦 Exportação de Recursos</span>
-                  <p className="text-xs text-gray-600">
-                    Vendas no mercado internacional
-                  </p>
-                </div>
-                <span className="text-green-700 font-bold">
-                  + R$ {finances.resourceRevenue.toLocaleString()}
-                </span>
-              </div>
-            )}
           </div>
           
           <div className="flex justify-between items-center p-4 bg-red-50 rounded-lg">
@@ -252,7 +238,8 @@ const FinancesTab = ({ nation, finances }) => {
           <li>• <strong>Aumente salários:</strong> Salários mais altos atraem trabalhadores mais rapidamente</li>
           <li>• <strong>Evite déficit de recursos:</strong> Importar recursos é 20% mais caro que o preço de mercado</li>
           <li>• <strong>Invista em infraestrutura:</strong> Benfeitorias aumentam felicidade e criam empregos</li>
-          <li>• <strong>Recursos excedentes:</strong> São armazenados automaticamente para venda futura</li>
+          <li>• <strong>Recursos excedentes:</strong> São armazenados automaticamente para uso ou comércio futuro</li>
+          <li>• <strong>Não há mais exportação automática:</strong> Gerencie seus estoques com cuidado</li>
           <li>• <strong>Mantenha reserva:</strong> Sempre tenha dinheiro suficiente para pelo menos 3 meses de despesas</li>
           <li>• <strong>Equilíbrio é fundamental:</strong> Invista em todas as áreas para manter a população feliz</li>
         </ul>

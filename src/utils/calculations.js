@@ -1,4 +1,4 @@
-// src/utils/calculations.js - COMPLETO CORRIGIDO
+// src/utils/calculations.js - ATUALIZADO
 
 import { GAME_CONFIG } from '../data/gameConfig';
 
@@ -24,6 +24,17 @@ export const generateTerritory = () => {
   }
 
   return { x, y, size: Math.floor(Math.random() * 50) + 50, resources };
+};
+
+// Calcula consumo de recursos pela população
+export const calculatePopulationResourceConsumption = (population) => {
+  const consumption = {};
+  
+  Object.entries(GAME_CONFIG.POPULATION_CONSUMPTION).forEach(([resource, amountPer1000]) => {
+    consumption[resource] = (population / 1000) * amountPer1000;
+  });
+  
+  return consumption;
 };
 
 // Calcula balanço de recursos (produção vs consumo)
@@ -56,6 +67,12 @@ export const calculateResourceBalance = (nation) => {
     }
   });
 
+  // Consumo da população
+  const populationConsumption = calculatePopulationResourceConsumption(nation.population);
+  Object.entries(populationConsumption).forEach(([resource, amount]) => {
+    consumption[resource] = (consumption[resource] || 0) + amount;
+  });
+
   // Calcular balanço
   const allResources = new Set([
     ...Object.keys(production),
@@ -68,7 +85,7 @@ export const calculateResourceBalance = (nation) => {
     balance[resource] = prod - cons;
   });
 
-  return { production, consumption, balance };
+  return { production, consumption, balance, populationConsumption };
 };
 
 // Preços de mercado para recursos
@@ -96,7 +113,6 @@ export const calculateFinances = (nation) => {
   if (!nation) return { 
     revenue: 0, 
     taxRevenue: 0,
-    resourceRevenue: 0,
     expenses: 0,
     salaryExpenses: 0,
     resourcePenalty: 0,
@@ -107,24 +123,20 @@ export const calculateFinances = (nation) => {
   const employedWorkers = nation.workers.employed;
   const taxRevenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.EMPLOYMENT_TAX_RATE;
   
-  // Calcular receita/penalidade de recursos
+  // Calcular penalidade de recursos em déficit (SEM EXPORTAÇÃO AUTOMÁTICA)
   const { balance: resourceBalance } = calculateResourceBalance(nation);
-  let resourceRevenue = 0;
   let resourcePenalty = 0;
 
   Object.entries(resourceBalance).forEach(([resource, amount]) => {
     const price = RESOURCE_PRICES[resource] || 0;
     
-    if (amount > 0) {
-      // Excedente: vender 50% no mercado
-      resourceRevenue += (amount * 0.5) * price;
-    } else if (amount < 0) {
+    if (amount < 0) {
       // Déficit: importar a preço cheio + 20% de taxa
       resourcePenalty += Math.abs(amount) * price * 1.2;
     }
   });
 
-  const revenue = taxRevenue + resourceRevenue;
+  const revenue = taxRevenue;
   
   let salaryExpenses = 0;
   
@@ -148,7 +160,6 @@ export const calculateFinances = (nation) => {
   return { 
     revenue: Math.floor(revenue),
     taxRevenue: Math.floor(taxRevenue),
-    resourceRevenue: Math.floor(resourceRevenue),
     expenses: Math.floor(expenses),
     salaryExpenses: Math.floor(salaryExpenses),
     resourcePenalty: Math.floor(resourcePenalty),
@@ -179,11 +190,12 @@ export const calculateHappiness = (nation) => {
   happiness += stats.health * 0.3;
   happiness += stats.security * 0.1;
   happiness += stats.food * 0.2;
+  happiness += (stats.culture || 0) * 0.15;
 
   // Penalidade por recursos em déficit
   const { balance: resourceBalance } = calculateResourceBalance(nation);
   const deficitCount = Object.values(resourceBalance).filter(v => v < 0).length;
-  happiness -= deficitCount * 5; // -5% por recurso em déficit
+  happiness -= deficitCount * 5;
   
   return { happiness: Math.min(100, Math.max(0, happiness)), stats };
 };
@@ -196,7 +208,7 @@ export const calculatePopulationGrowth = (population, happiness) => {
 
 export const autoFillJobs = (nation) => {
   let availableWorkers = nation.workers.common - nation.workers.employed;
-  let newEmployed = nation.workers.employed;
+  let totalEmployed = 0;
 
   const updatedFacilities = nation.facilities.map(facility => ({
     ...facility,
@@ -216,14 +228,15 @@ export const autoFillJobs = (nation) => {
 
         if (toFill > 0) {
           availableWorkers -= toFill;
-          newEmployed += toFill;
+          totalEmployed += (currentFilled + toFill);
           return { ...job, filled: currentFilled + toFill };
         }
       }
 
+      totalEmployed += currentFilled;
       return job;
     })
   }));
 
-  return { updatedFacilities, newEmployed };
+  return { updatedFacilities, newEmployed: totalEmployed };
 };
