@@ -13,6 +13,7 @@ import MinistriesTab from './views/MinistriesTab';
 import FinancesTab from './views/FinancesTab';
 import TechnologyTab from './views/TechnologyTab';
 import ResourcesTab from './views/ResourcesTab';
+import TradeTab from './views/TradeTab';
 
 const MyNation = () => {
   const {
@@ -27,7 +28,8 @@ const MyNation = () => {
     createFacility,
     updateJobSalary,
     nextTurn,
-    startResearch
+    startResearch,
+    exportResource
   } = useGameLogic();
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -105,7 +107,7 @@ const MyNation = () => {
       <div className="bg-white shadow">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex gap-1 overflow-x-auto">
-            {['overview', 'territory', 'ministries', 'technology', 'resources', 'finances'].map(tab => (
+            {['overview', 'territory', 'ministries', 'technology', 'resources', 'trade', 'finances'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -120,6 +122,7 @@ const MyNation = () => {
                 {tab === 'ministries' && '🏛️ Ministérios'}
                 {tab === 'technology' && '🔬 Tecnologia'}
                 {tab === 'resources' && '📦 Recursos'}
+                {tab === 'trade' && '💱 Comércio'}
                 {tab === 'finances' && '💰 Finanças'}
               </button>
             ))}
@@ -165,6 +168,10 @@ const MyNation = () => {
 
         {activeTab === 'resources' && (
           <ResourcesTab nation={nation} />
+        )}
+
+        {activeTab === 'trade' && (
+          <TradeTab nation={nation} onExportResource={exportResource} />
         )}
 
         {activeTab === 'finances' && (

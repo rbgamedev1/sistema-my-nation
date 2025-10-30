@@ -1,4 +1,4 @@
-// src/hooks/useGameLogic.js - COMPLETO CORRIGIDO
+// src/hooks/useGameLogic.js - COMPLETO ATUALIZADO COM EXPORTAÇÃO
 
 import { useState } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -370,6 +370,52 @@ export const useGameLogic = () => {
     );
   };
 
+  // Exportar Recursos
+  const exportResource = (resource, amount) => {
+    if (!nation || !nation.resourceStorage[resource] || nation.resourceStorage[resource] < amount) {
+      addNotification('❌ Estoque insuficiente para exportação!', 'error');
+      return;
+    }
+
+    // Preços base por unidade (em R$)
+    const basePrices = {
+      agua: 10,
+      petroleo: 100,
+      gas: 80,
+      ferro: 50,
+      ouro: 500,
+      cobre: 70,
+      terrasAraveis: 30,
+      food: 20,
+      energy: 15,
+      fuel: 90,
+      madeira: 40,
+      furniture: 150,
+      fruits: 25,
+      vegetables: 25,
+      clothing: 120,
+      medicine: 200,
+      floresta: 35
+    };
+
+    const price = basePrices[resource] || 50;
+    const totalValue = Math.floor(amount * price);
+
+    setNation(prev => ({
+      ...prev,
+      treasury: prev.treasury + totalValue,
+      resourceStorage: {
+        ...prev.resourceStorage,
+        [resource]: prev.resourceStorage[resource] - amount
+      }
+    }));
+
+    addNotification(
+      `💰 Exportação concluída! ${amount} unidades de ${resource} vendidas por R$ ${totalValue.toLocaleString()}`,
+      'success'
+    );
+  };
+
   // Próximo Turno
   const nextTurn = () => {
     if (!nation) return;
@@ -519,6 +565,7 @@ export const useGameLogic = () => {
     nextTurn,
     startResearch,
     completeResearch,
-    addNotification
+    addNotification,
+    exportResource
   };
 };
