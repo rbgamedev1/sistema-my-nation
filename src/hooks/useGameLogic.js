@@ -1,6 +1,6 @@
-// src/hooks/useGameLogic.js - COMPLETO ATUALIZADO COM EXPORTAÇÃO
+// src/hooks/useGameLogic.js - COMPLETO COM SISTEMAS DE CIDADÃOS
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
 import { MINISTRY_TYPES } from '../data/ministryTypes';
 import { 
@@ -17,12 +17,28 @@ import {
   calculateResearchSpeed, 
   applyTechEffects 
 } from '../data/technologies';
+import { CitizenSystem } from '../systems/citizenSystem';
+import { PopulationNeedsSystem } from '../systems/populationNeeds';
 
 export const useGameLogic = () => {
   const [gameState, setGameState] = useState('setup');
   const [president, setPresident] = useState({ name: '', nationName: '' });
   const [nation, setNation] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  
+  // Sistemas de Cidadãos e Necessidades
+  const [citizenSystem, setCitizenSystem] = useState(null);
+  const [populationNeeds, setPopulationNeeds] = useState(null);
+
+  // Inicializar sistemas quando o jogo começar
+  useEffect(() => {
+    if (nation && !citizenSystem) {
+      const cs = new CitizenSystem(nation);
+      const pn = new PopulationNeedsSystem();
+      setCitizenSystem(cs);
+      setPopulationNeeds(pn);
+    }
+  }, [nation, citizenSystem]);
 
   // Sistema de Notificações
   const addNotification = (message, type = 'info') => {
@@ -55,7 +71,8 @@ export const useGameLogic = () => {
         economy: 0,
         research: 0,
         energy: 0,
-        resources: 0
+        resources: 0,
+        culture: 0
       },
       workers: {
         common: GAME_CONFIG.INITIAL_POPULATION,
@@ -67,6 +84,36 @@ export const useGameLogic = () => {
       technologies: {
         researching: [],
         researched: []
+      },
+      educationLevel: 'none',
+      economicStatus: 'medium',
+      resources: {
+        land: territory.terrasAraveis || 100,
+        water: territory.agua || 500,
+        rice: 0,
+        beans: 0,
+        corn: 0,
+        sugar: 0,
+        coffee: 0,
+        soy: 0,
+        lemon: 0,
+        apple: 0,
+        orange: 0,
+        banana: 0,
+        spices: 0
+      },
+      production: {
+        rice: 0,
+        beans: 0,
+        corn: 0,
+        sugar: 0,
+        coffee: 0,
+        soy: 0,
+        lemon: 0,
+        apple: 0,
+        orange: 0,
+        banana: 0,
+        spices: 0
       }
     };
 
@@ -233,7 +280,6 @@ export const useGameLogic = () => {
       appliedTechs: []
     };
 
-    // Aplicar tecnologias já pesquisadas
     const updatedFacility = applyTechEffects(
       newFacility, 
       nation.technologies?.researched || []
@@ -245,7 +291,7 @@ export const useGameLogic = () => {
       treasury: prev.treasury - facilityData.cost
     }));
 
-    addNotification(`🏗️ ${facilityData.name} construída com sucesso!`, 'success');
+    addNotification(`🗿️ ${facilityData.name} construída com sucesso!`, 'success');
   };
 
   // Atualizar Salário de Cargo
@@ -377,7 +423,6 @@ export const useGameLogic = () => {
       return;
     }
 
-    // Preços base por unidade (em R$)
     const basePrices = {
       agua: 10,
       petroleo: 100,
@@ -395,7 +440,18 @@ export const useGameLogic = () => {
       vegetables: 25,
       clothing: 120,
       medicine: 200,
-      floresta: 35
+      floresta: 35,
+      rice: 15,
+      beans: 18,
+      corn: 12,
+      sugar: 25,
+      coffee: 40,
+      soy: 20,
+      lemon: 30,
+      apple: 35,
+      orange: 28,
+      banana: 22,
+      spices: 100
     };
 
     const price = basePrices[resource] || 50;
@@ -413,6 +469,184 @@ export const useGameLogic = () => {
     addNotification(
       `💰 Exportação concluída! ${amount} unidades de ${resource} vendidas por R$ ${totalValue.toLocaleString()}`,
       'success'
+    );
+  };
+
+  // Melhorar Educação
+  const upgradeEducation = () => {
+    if (!nation) return;
+
+    const educationLevels = ["none", "basic", "intermediate", "advanced", "superior"];
+    const currentIndex = educationLevels.indexOf(nation.educationLevel);
+    
+    if (currentIndex >= educationLevels.length - 1) {
+      addNotification('🎓 Educação já está no nível máximo!', 'info');
+      return;
+    }
+
+    const costs = GAME_CONFIG.EDUCATION.COSTS;
+    const nextLevel = educationLevels[currentIndex + 1];
+    const cost = costs[nextLevel];
+
+    if (nation.treasury < cost) {
+      addNotification(`💰 Tesouro insuficiente! Necessário R$ ${cost.toLocaleString()}`, 'error');
+      return;
+    }
+
+    const schools = nation.facilities.filter(f => 
+      f.name.includes('Escola') || f.name.includes('Universidade')
+    ).length;
+
+    const requiredSchools = GAME_CONFIG.EDUCATION.SCHOOL_REQUIREMENTS;
+
+    if (schools < requiredSchools[nextLevel]) {
+      addNotification(
+        `🏫 Construa pelo menos ${requiredSchools[nextLevel]} escolas/universidades antes de melhorar a educação!`,
+        'warning'
+      );
+      return;
+    }
+
+    setNation(prev => ({
+      ...prev,
+      treasury: prev.treasury - cost,
+      educationLevel: nextLevel
+    }));
+
+    const levelNames = {
+      basic: 'Básica',
+      intermediate: 'Intermediária',
+      advanced: 'Avançada',
+      superior: 'Superior'
+    };
+
+    addNotification(
+      `🎓 Educação melhorada para ${levelNames[nextLevel]}! Cidadãos agora podem criar negócios maiores!`,
+      'success'
+    );
+
+    if (citizenSystem) {
+      const capabilities = citizenSystem.getEducationLevels()[nextLevel];
+      addNotification(
+        `💼 Novos tipos de negócio desbloqueados! Capacidade: ${capabilities.employeeCapacity} funcionários`,
+        'info'
+      );
+    }
+  };
+
+  // Aprovar Expansão de Negócio
+  const approveBusinessExpansion = (businessId) => {
+    if (!nation || !citizenSystem) return;
+
+    const business = citizenSystem.autonomousBusinesses.find(b => b.id === businessId);
+    if (!business) {
+      addNotification('Negócio não encontrado!', 'error');
+      return;
+    }
+
+    const expansion = citizenSystem.checkBusinessExpansion(business, nation);
+    if (!expansion) {
+      addNotification('Este negócio não pode expandir no momento.', 'warning');
+      return;
+    }
+
+    if ((nation.resources.land || 0) < expansion.costs.land) {
+      addNotification('Terra insuficiente para expansão!', 'error');
+      return;
+    }
+
+    if ((nation.resources.water || 0) < expansion.costs.water) {
+      addNotification('Água insuficiente para expansão!', 'error');
+      return;
+    }
+
+    if (nation.treasury < expansion.costs.money) {
+      addNotification(
+        `Tesouro insuficiente! Necessário R$ ${expansion.costs.money.toLocaleString()}`,
+        'error'
+      );
+      return;
+    }
+
+    const result = citizenSystem.approveExpansion(expansion, nation);
+
+    if (result.success) {
+      setNation(prev => ({
+        ...prev,
+        resources: {
+          ...prev.resources,
+          land: prev.resources.land - expansion.costs.land,
+          water: prev.resources.water - expansion.costs.water
+        },
+        treasury: prev.treasury - expansion.costs.money
+      }));
+
+      addNotification(
+        `🚀 Negócio expandido! ${result.citizen.name} agora tem um negócio ${result.business.size}`,
+        'success'
+      );
+      addNotification(
+        `💼 +${result.business.employees - business.employees} novos empregos criados!`,
+        'info'
+      );
+    } else {
+      addNotification(result.reason, 'error');
+    }
+  };
+
+  // Destruir Negócio de Cidadão
+  const destroyCitizenBusiness = (businessId) => {
+    if (!nation || !citizenSystem) return;
+
+    const result = citizenSystem.destroyBusiness(businessId, nation);
+
+    if (result.success) {
+      setNation(prev => ({
+        ...prev,
+        resources: {
+          ...prev.resources,
+          land: prev.resources.land + result.returnedResources.land,
+          water: prev.resources.water + result.returnedResources.water
+        },
+        treasury: prev.treasury + result.returnedResources.money
+      }));
+
+      addNotification(
+        `🗑️ Negócio destruído. ${result.jobsLost} empregos perdidos.`,
+        'warning'
+      );
+      addNotification(
+        `💰 Recursos recuperados: ${result.returnedResources.land} terra, ${result.returnedResources.water} água, R$ ${result.returnedResources.money.toLocaleString()}`,
+        'info'
+      );
+    } else {
+      addNotification(result.reason, 'error');
+    }
+  };
+
+  // Obter Produção Autônoma
+  const getAutonomousProduction = () => {
+    if (!citizenSystem) return {};
+    
+    const production = {};
+    for (const business of citizenSystem.autonomousBusinesses) {
+      production[business.product] = (production[business.product] || 0) + business.production;
+    }
+    return production;
+  };
+
+  // Obter Relatório de Satisfação
+  const getSatisfactionReport = () => {
+    if (!nation || !populationNeeds) return null;
+
+    const autonomousProduction = getAutonomousProduction();
+    
+    return populationNeeds.generateReport(
+      nation.population,
+      nation.resources,
+      autonomousProduction,
+      nation.educationLevel,
+      nation.economicStatus
     );
   };
 
@@ -434,13 +668,11 @@ export const useGameLogic = () => {
     const populationGrowth = calculatePopulationGrowth(nation.population, happiness);
     const { updatedFacilities, newEmployed } = autoFillJobs(nation);
 
-    // Armazenar recursos excedentes
     const { balance: resourceBalance } = calculateResourceBalance(nation);
     const updatedResourceStorage = { ...(nation.resourceStorage || {}) };
     
     Object.entries(resourceBalance).forEach(([resource, amount]) => {
       if (amount > 0) {
-        // Armazenar 50% do excedente (os outros 50% são vendidos)
         updatedResourceStorage[resource] = (updatedResourceStorage[resource] || 0) + (amount * 0.5);
       }
     });
@@ -457,22 +689,48 @@ export const useGameLogic = () => {
       return { ...research, progress: newProgress };
     }).filter(Boolean);
 
+    let citizenResults = null;
+    if (citizenSystem && nation.educationLevel !== 'none') {
+      citizenResults = citizenSystem.processTurn(nation);
+    }
+
+    let satisfactionReport = null;
+    let satisfactionEffects = { productivity: 1.0, taxCompliance: 1.0, growth: 1.0 };
+    if (populationNeeds) {
+      const autonomousProduction = getAutonomousProduction();
+      satisfactionReport = populationNeeds.generateReport(
+        nation.population,
+        nation.resources,
+        autonomousProduction,
+        nation.educationLevel,
+        nation.economicStatus
+      );
+      satisfactionEffects = satisfactionReport.effects;
+    }
+
+    const adjustedBalance = finances.balance * satisfactionEffects.taxCompliance;
+    const adjustedGrowth = Math.floor(populationGrowth * satisfactionEffects.growth);
+
     setNation(prev => ({
       ...prev,
       currentMonth: prev.currentMonth + 1,
-      treasury: prev.treasury + finances.balance,
-      population: prev.population + populationGrowth,
+      treasury: prev.treasury + adjustedBalance + (citizenResults?.taxRevenue || 0),
+      population: prev.population + adjustedGrowth,
       happiness,
       stats,
       facilities: updatedFacilities,
       resourceStorage: updatedResourceStorage,
       workers: {
-        common: prev.workers.common + populationGrowth,
-        employed: newEmployed
+        common: prev.workers.common + adjustedGrowth,
+        employed: newEmployed + (citizenResults?.totalJobs || 0)
       },
       technologies: {
         ...prev.technologies,
         researching: updatedResearching
+      },
+      production: {
+        ...prev.production,
+        ...(citizenResults?.productionAdded || {})
       }
     }));
 
@@ -483,13 +741,81 @@ export const useGameLogic = () => {
     const newMonth = nation.currentMonth + 1;
     
     addNotification(
-      `📅 Mês ${newMonth}: Balanço ${finances.balance >= 0 ? '+' : ''}R$ ${finances.balance.toLocaleString()}`,
-      finances.balance >= 0 ? 'success' : 'warning'
+      `📅 Mês ${newMonth}: Balanço ${adjustedBalance >= 0 ? '+' : ''}R$ ${Math.floor(adjustedBalance).toLocaleString()}`,
+      adjustedBalance >= 0 ? 'success' : 'warning'
     );
 
-    if (populationGrowth > 0) {
+    if (citizenResults && citizenResults.taxRevenue > 0) {
       addNotification(
-        `👥 População cresceu em ${populationGrowth.toLocaleString()} habitantes!`,
+        `💼 Impostos de negócios autônomos: +R$ ${citizenResults.taxRevenue.toLocaleString()}`,
+        'success'
+      );
+    }
+
+    if (citizenResults && citizenResults.events.length > 0) {
+      citizenResults.events.forEach(event => {
+        if (event.type === 'citizen_business_created') {
+          setNation(prev => ({
+            ...prev,
+            resources: {
+              ...prev.resources,
+              land: prev.resources.land - event.resourcesUsed.land,
+              water: prev.resources.water - event.resourcesUsed.water
+            },
+            treasury: prev.treasury + event.resourcesUsed.payment
+          }));
+
+          addNotification(
+            `🌾 Novo Negócio! ${event.citizen.name} criou uma plantação de ${event.business.productName}`,
+            'success'
+          );
+          addNotification(
+            `💼 +${event.benefits.jobs} empregos | +R$ ${event.benefits.monthlyTax}/mês em impostos`,
+            'info'
+          );
+        }
+      });
+    }
+
+    if (citizenResults && citizenResults.expansionOpportunities.length > 0) {
+      addNotification(
+        `🚀 ${citizenResults.expansionOpportunities.length} negócio(s) pronto(s) para expandir!`,
+        'info'
+      );
+    }
+
+    if (satisfactionReport) {
+      const satisfaction = satisfactionReport.satisfaction.overallSatisfaction;
+      
+      if (satisfaction < 30) {
+        addNotification(
+          `😢 Satisfação crítica (${satisfaction}%)! População está descontente com falta de alimentos!`,
+          'error'
+        );
+      } else if (satisfaction < 50) {
+        addNotification(
+          `😐 Satisfação baixa (${satisfaction}%). Melhore o fornecimento de alimentos básicos.`,
+          'warning'
+        );
+      } else if (satisfaction >= 90) {
+        addNotification(
+          `😊 População muito satisfeita (${satisfaction}%)! Excelente fornecimento de recursos!`,
+          'success'
+        );
+      }
+
+      if (satisfactionReport.satisfaction.criticalShortages.length > 0) {
+        const shortage = satisfactionReport.satisfaction.criticalShortages[0];
+        addNotification(
+          `⚠️ Escassez crítica de ${shortage.item}! Aumente a produção urgentemente!`,
+          'error'
+        );
+      }
+    }
+
+    if (adjustedGrowth > 0) {
+      addNotification(
+        `👥 População cresceu em ${adjustedGrowth.toLocaleString()} habitantes!`,
         'info'
       );
     }
@@ -515,7 +841,9 @@ export const useGameLogic = () => {
       );
     }
 
-    const employmentRate = (nation.workers.employed / nation.population);
+    const totalEmployed = newEmployed + (citizenResults?.totalJobs || 0);
+    const employmentRate = totalEmployed / nation.population;
+    
     if (employmentRate < 0.1) {
       addNotification(
         '💼 Alto desemprego! Crie mais vagas de emprego construindo benfeitorias!',
@@ -566,6 +894,13 @@ export const useGameLogic = () => {
     startResearch,
     completeResearch,
     addNotification,
-    exportResource
+    exportResource,
+    upgradeEducation,
+    approveBusinessExpansion,
+    destroyCitizenBusiness,
+    getAutonomousProduction,
+    getSatisfactionReport,
+    citizenSystem,
+    populationNeeds
   };
 };

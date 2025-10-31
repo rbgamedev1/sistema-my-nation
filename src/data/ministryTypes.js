@@ -1,4 +1,4 @@
-// src/data/ministryTypes.js
+// src/data/ministryTypes.js - ATUALIZADO COM PRODUTOS AGRÍCOLAS
 
 export const MINISTRY_TYPES = {
   educacao: {
@@ -47,7 +47,7 @@ export const MINISTRY_TYPES = {
   
   saude: {
     name: 'Saúde',
-    icon: '🏥',
+    icon: '🥼',
     facilities: [
       {
         name: 'Posto de Saúde',
@@ -125,6 +125,153 @@ export const MINISTRY_TYPES = {
     name: 'Agricultura',
     icon: '🌾',
     facilities: [
+      // FAZENDAS DE GRÃOS BÁSICOS
+      {
+        name: 'Fazenda de Arroz',
+        cost: 350000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 4000 },
+          { role: 'Agrônomo', count: 3, minSalary: 3500 },
+          { role: 'Trabalhador Rural', count: 45, minSalary: 1500 },
+          { role: 'Operador de Máquinas', count: 8, minSalary: 2000 }
+        ],
+        benefits: { food: 25, economy: 10, happiness: 5 },
+        resourceConsumption: { agua: 600, terrasAraveis: 120, energy: 60 },
+        resourceProduction: { rice: 900 }
+      },
+      {
+        name: 'Fazenda de Feijão',
+        cost: 320000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 4000 },
+          { role: 'Agrônomo', count: 2, minSalary: 3500 },
+          { role: 'Trabalhador Rural', count: 40, minSalary: 1500 },
+          { role: 'Operador de Máquinas', count: 7, minSalary: 2000 }
+        ],
+        benefits: { food: 20, economy: 10, happiness: 5 },
+        resourceConsumption: { agua: 500, terrasAraveis: 100, energy: 50 },
+        resourceProduction: { beans: 600 }
+      },
+      {
+        name: 'Fazenda de Milho',
+        cost: 300000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 4000 },
+          { role: 'Agrônomo', count: 2, minSalary: 3500 },
+          { role: 'Trabalhador Rural', count: 38, minSalary: 1500 },
+          { role: 'Operador de Máquinas', count: 6, minSalary: 2000 }
+        ],
+        benefits: { food: 18, economy: 10, happiness: 5 },
+        resourceConsumption: { agua: 450, terrasAraveis: 90, energy: 45 },
+        resourceProduction: { corn: 500 }
+      },
+      {
+        name: 'Plantação de Soja',
+        cost: 380000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 4500 },
+          { role: 'Agrônomo', count: 3, minSalary: 3500 },
+          { role: 'Trabalhador Rural', count: 42, minSalary: 1500 },
+          { role: 'Operador de Máquinas', count: 8, minSalary: 2000 }
+        ],
+        benefits: { food: 22, economy: 15, happiness: 5 },
+        resourceConsumption: { agua: 550, terrasAraveis: 110, energy: 55 },
+        resourceProduction: { soy: 400 }
+      },
+      
+      // FAZENDAS ESPECIAIS
+      {
+        name: 'Usina de Açúcar',
+        cost: 450000,
+        jobs: [
+          { role: 'Diretor', count: 1, minSalary: 6000 },
+          { role: 'Engenheiro', count: 5, minSalary: 4500 },
+          { role: 'Trabalhador Rural', count: 50, minSalary: 1500 },
+          { role: 'Operador Industrial', count: 15, minSalary: 2500 }
+        ],
+        benefits: { food: 15, economy: 20, happiness: 5 },
+        resourceConsumption: { agua: 700, terrasAraveis: 140, energy: 150 },
+        resourceProduction: { sugar: 300 }
+      },
+      {
+        name: 'Fazenda de Café',
+        cost: 400000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 5000 },
+          { role: 'Agrônomo', count: 3, minSalary: 4000 },
+          { role: 'Trabalhador Rural', count: 48, minSalary: 1600 },
+          { role: 'Técnico de Beneficiamento', count: 10, minSalary: 2200 }
+        ],
+        benefits: { food: 12, economy: 25, happiness: 8 },
+        resourceConsumption: { agua: 600, terrasAraveis: 120, energy: 70 },
+        resourceProduction: { coffee: 200 }
+      },
+      
+      // POMARES (FRUTAS)
+      {
+        name: 'Pomar de Bananas',
+        cost: 280000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 3800 },
+          { role: 'Agrônomo', count: 2, minSalary: 3500 },
+          { role: 'Trabalhador Rural', count: 35, minSalary: 1500 }
+        ],
+        benefits: { food: 15, economy: 12, happiness: 7 },
+        resourceConsumption: { agua: 450, terrasAraveis: 80, energy: 30 },
+        resourceProduction: { banana: 300 }
+      },
+      {
+        name: 'Pomar de Laranjas',
+        cost: 300000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 4000 },
+          { role: 'Agrônomo', count: 2, minSalary: 3500 },
+          { role: 'Trabalhador Rural', count: 38, minSalary: 1500 }
+        ],
+        benefits: { food: 16, economy: 13, happiness: 7 },
+        resourceConsumption: { agua: 480, terrasAraveis: 85, energy: 32 },
+        resourceProduction: { orange: 250 }
+      },
+      {
+        name: 'Pomar de Maçãs',
+        cost: 320000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 4200 },
+          { role: 'Agrônomo', count: 2, minSalary: 3600 },
+          { role: 'Trabalhador Rural', count: 40, minSalary: 1550 }
+        ],
+        benefits: { food: 18, economy: 14, happiness: 8 },
+        resourceConsumption: { agua: 500, terrasAraveis: 90, energy: 35 },
+        resourceProduction: { apple: 200 }
+      },
+      {
+        name: 'Pomar de Limões',
+        cost: 250000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 3600 },
+          { role: 'Agrônomo', count: 1, minSalary: 3500 },
+          { role: 'Trabalhador Rural', count: 30, minSalary: 1500 }
+        ],
+        benefits: { food: 12, economy: 10, happiness: 6 },
+        resourceConsumption: { agua: 400, terrasAraveis: 70, energy: 28 },
+        resourceProduction: { lemon: 120 }
+      },
+      
+      // ESPECIARIAS E TEMPEROS
+      {
+        name: 'Horta de Especiarias',
+        cost: 200000,
+        jobs: [
+          { role: 'Gerente', count: 1, minSalary: 3500 },
+          { role: 'Especialista', count: 3, minSalary: 3000 },
+          { role: 'Trabalhador', count: 25, minSalary: 1500 }
+        ],
+        benefits: { food: 10, economy: 18, happiness: 8 },
+        resourceConsumption: { agua: 300, terrasAraveis: 50, energy: 25 },
+        resourceProduction: { spices: 80 }
+      },
+      
+      // MANTIDAS (GENÉRICAS)
       {
         name: 'Fazenda de Grãos',
         cost: 400000,
@@ -344,7 +491,7 @@ export const MINISTRY_TYPES = {
 
   infraestrutura: {
     name: 'Infraestrutura',
-    icon: '🏗️',
+    icon: '🗿️',
     facilities: [
       {
         name: 'Estação de Tratamento de Água',

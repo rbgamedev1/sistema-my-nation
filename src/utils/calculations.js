@@ -1,6 +1,6 @@
-// src/utils/calculations.js - PENALIDADES BALANCEADAS
+// src/utils/calculations.js - ATUALIZADO COM NOVOS RECURSOS
 
-import { GAME_CONFIG } from '../data/gameConfig';
+import { GAME_CONFIG, RESOURCE_CATEGORIES, DEFICIT_PENALTIES } from '../data/gameConfig';
 
 export const generateTerritory = () => {
   const x = Math.floor(Math.random() * 100);
@@ -67,6 +67,13 @@ export const calculateResourceBalance = (nation) => {
     }
   });
 
+  // Adicionar produção de cidadãos autônomos (se existir)
+  if (nation.production) {
+    Object.entries(nation.production).forEach(([resource, amount]) => {
+      production[resource] = (production[resource] || 0) + amount;
+    });
+  }
+
   // Consumo da população
   const populationConsumption = calculatePopulationResourceConsumption(nation.population);
   Object.entries(populationConsumption).forEach(([resource, amount]) => {
@@ -131,6 +138,16 @@ export const calculateFinances = (nation) => {
   };
 };
 
+// Determinar categoria de um recurso
+const getResourceCategory = (resource) => {
+  for (const [category, resources] of Object.entries(RESOURCE_CATEGORIES)) {
+    if (resources.includes(resource)) {
+      return category;
+    }
+  }
+  return 'other';
+};
+
 export const calculateHappiness = (nation) => {
   let happiness = 50;
   const stats = { ...nation.stats };
@@ -159,27 +176,11 @@ export const calculateHappiness = (nation) => {
   // PENALIDADES BALANCEADAS POR RECURSOS EM DÉFICIT
   const { balance: resourceBalance } = calculateResourceBalance(nation);
   
-  // Categorias de recursos
-  const criticalResources = ['agua', 'food', 'energy']; // Essenciais para sobrevivência
-  const importantResources = ['fruits', 'vegetables', 'medicine']; // Importantes para saúde
-  const comfortResources = ['furniture', 'clothing']; // Conforto e qualidade de vida
-  // Recursos industriais (petróleo, ferro, etc) não afetam felicidade diretamente
-  const industrialResources = ['petroleo', 'gas', 'ferro', 'ouro', 'cobre', 'madeira', 'fuel', 'floresta', 'terrasAraveis'];
-  
   Object.entries(resourceBalance).forEach(([resource, amount]) => {
     if (amount < 0) {
-      if (criticalResources.includes(resource)) {
-        // Recursos críticos: penalidade severa
-        happiness -= 12; // -12% por recurso crítico em déficit
-      } else if (importantResources.includes(resource)) {
-        // Recursos importantes: penalidade moderada
-        happiness -= 5; // -5% por recurso importante em déficit
-      } else if (comfortResources.includes(resource)) {
-        // Recursos de conforto: penalidade leve
-        happiness -= 2; // -2% por recurso de conforto em déficit
-      }
-      // Recursos industriais em déficit não afetam felicidade da população
-      // Apenas impedem construção/funcionamento de benfeitorias
+      const category = getResourceCategory(resource);
+      const penalty = DEFICIT_PENALTIES[category] || 0;
+      happiness += penalty; // Penalidades são negativas
     }
   });
   

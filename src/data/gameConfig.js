@@ -1,4 +1,4 @@
-// src/data/gameConfig.js
+// src/data/gameConfig.js - ATUALIZADO COM PRODUTOS AGRÍCOLAS
 
 export const GAME_CONFIG = {
   INITIAL_POPULATION: 1000000,
@@ -15,62 +15,188 @@ export const GAME_CONFIG = {
     AVERAGE: 40,
     POOR: 20
   },
-  // Consumo per capita (por 1000 habitantes por mês) - REBALANCEADO
+  
+  // Consumo per capita (por 1000 habitantes por mês) - EXPANDIDO
   POPULATION_CONSUMPTION: {
     // Recursos Críticos (essenciais para sobrevivência)
-    agua: 15,        // Reduzido de 50 para 15 (mais realista)
-    food: 10,        // Reduzido de 30 para 10 (alimentos básicos)
-    energy: 8,       // Reduzido de 20 para 8 (energia residencial)
+    agua: 15,        // Água
+    energy: 8,       // Energia
     
-    // Recursos Secundários (qualidade de vida)
-    furniture: 1,    // Reduzido de 5 para 1 (não compra todo mês)
-    fruits: 3,       // Reduzido de 10 para 3 (complemento alimentar)
-    vegetables: 3,   // Reduzido de 10 para 3 (complemento alimentar)
-    clothing: 0.5,   // Reduzido de 3 para 0.5 (não compra todo mês)
-    medicine: 0.3    // Reduzido de 2 para 0.3 (uso ocasional)
+    // ALIMENTOS BÁSICOS (críticos - grãos)
+    rice: 8,         // Arroz - alimento base brasileiro
+    beans: 5,        // Feijão - proteína vegetal essencial
+    corn: 4,         // Milho - versátil
+    
+    // ALIMENTOS IMPORTANTES
+    sugar: 2,        // Açúcar - energia rápida
+    soy: 3,          // Soja - proteína e óleo
+    
+    // BEBIDAS
+    coffee: 1.5,     // Café - consumo diário moderado
+    
+    // FRUTAS (variedade)
+    banana: 2,       // Banana - mais consumida
+    orange: 1.5,     // Laranja - vitamina C
+    apple: 1,        // Maçã - saúde
+    lemon: 0.5,      // Limão - tempero
+    
+    // ESPECIARIAS
+    spices: 0.3,     // Especiarias - tempero
+    
+    // Recursos Secundários (mantidos)
+    furniture: 1,
+    fruits: 2,       // Frutas gerais (além das específicas)
+    vegetables: 3,   // Vegetais gerais
+    clothing: 0.5,
+    medicine: 0.3,
+    
+    // Mantido para compatibilidade
+    food: 10         // Alimentos gerais (será gradualmente substituído pelos específicos)
   },
+  
   TECHNOLOGY: {
     BASE_RESEARCH_SPEED: 1,
     MAX_SIMULTANEOUS_RESEARCH: 3,
     RESEARCH_COST_MULTIPLIER: 1.0
+  },
+  
+  // NOVOS: Sistema de Educação
+  EDUCATION: {
+    COSTS: {
+      basic: 50000,
+      intermediate: 200000,
+      advanced: 800000,
+      superior: 3000000
+    },
+    SCHOOL_REQUIREMENTS: {
+      basic: 1,
+      intermediate: 3,
+      advanced: 5,
+      superior: 10
+    }
+  },
+  
+  // NOVOS: Sistema de Cidadãos
+  CITIZENS: {
+    BUSINESS_CREATION_CHANCE: 0.05, // 5% por mês
+    TAX_RATE: 0.15, // 15% de imposto sobre receita
+    EXPANSION_COOLDOWN: 6, // Meses antes de poder expandir
+    GOVERNMENT_SUBSIDY: 0.5 // Governo subsidia 50% do custo
   }
 };
 
-// Notas sobre o rebalanceamento:
+// Mapeamento de nomes de recursos
+export const RESOURCE_NAMES = {
+  // Recursos básicos
+  agua: 'Água',
+  petroleo: 'Petróleo',
+  gas: 'Gás Natural',
+  ferro: 'Ferro',
+  ouro: 'Ouro',
+  cobre: 'Cobre',
+  terrasAraveis: 'Terras Aráveis',
+  energy: 'Energia',
+  fuel: 'Combustível',
+  madeira: 'Madeira',
+  furniture: 'Móveis',
+  clothing: 'Roupas',
+  medicine: 'Medicamentos',
+  floresta: 'Floresta',
+  
+  // Alimentos gerais
+  food: 'Alimentos',
+  fruits: 'Frutas',
+  vegetables: 'Vegetais',
+  
+  // Grãos e básicos
+  rice: 'Arroz',
+  beans: 'Feijão',
+  corn: 'Milho',
+  sugar: 'Açúcar',
+  soy: 'Soja',
+  
+  // Bebidas
+  coffee: 'Café',
+  
+  // Frutas específicas
+  banana: 'Banana',
+  orange: 'Laranja',
+  apple: 'Maçã',
+  lemon: 'Limão',
+  
+  // Especiarias
+  spices: 'Especiarias'
+};
+
+// Ícones de recursos
+export const RESOURCE_ICONS = {
+  agua: '💧',
+  petroleo: '🛢️',
+  gas: '💨',
+  ferro: '⚙️',
+  ouro: '🏆',
+  cobre: '🔶',
+  terrasAraveis: '🌾',
+  food: '🍞',
+  energy: '⚡',
+  fuel: '⛽',
+  madeira: '🪵',
+  furniture: '🪑',
+  fruits: '🍎',
+  vegetables: '🥕',
+  clothing: '👕',
+  medicine: '💊',
+  floresta: '🌲',
+  
+  // Novos produtos agrícolas
+  rice: '🍚',
+  beans: '🫘',
+  corn: '🌽',
+  sugar: '🍬',
+  coffee: '☕',
+  soy: '🫛',
+  lemon: '🍋',
+  apple: '🍎',
+  orange: '🍊',
+  banana: '🍌',
+  spices: '🌶️'
+};
+
+// Categorias de recursos
+export const RESOURCE_CATEGORIES = {
+  critical: ['agua', 'rice', 'beans', 'energy'],
+  important: ['corn', 'sugar', 'soy', 'coffee', 'vegetables', 'food'],
+  comfort: ['banana', 'orange', 'apple', 'lemon', 'spices', 'fruits', 'furniture', 'clothing'],
+  health: ['medicine'],
+  industrial: ['petroleo', 'gas', 'ferro', 'ouro', 'cobre', 'madeira', 'fuel', 'floresta', 'terrasAraveis']
+};
+
+// Penalidades por déficit
+export const DEFICIT_PENALTIES = {
+  critical: -12,  // -12% felicidade por recurso crítico
+  important: -5,  // -5% felicidade por recurso importante
+  comfort: -2,    // -2% felicidade por recurso de conforto
+  health: -8,     // -8% felicidade por medicamentos
+  industrial: 0   // Não afeta felicidade, apenas impede construções
+};
+
+// Notas sobre o sistema:
 // 
-// ÁGUA (15/1k hab):
-// - 1M habitantes = 15k unidades/mês
-// - 1 Poço Artesiano produz 1000 = precisa de ~15 poços
-// - 1 Estação de Tratamento produz 2000 = precisa de ~8 estações
-// - Mais realista e gerenciável
+// ALIMENTOS BÁSICOS:
+// - Arroz (8/1k): Base da alimentação
+// - Feijão (5/1k): Proteína essencial
+// - Milho (4/1k): Alimento versátil
+// - 1M habitantes = 8k arroz + 5k feijão + 4k milho = 17k alimentos básicos/mês
 //
-// ALIMENTOS (10/1k hab):
-// - 1M habitantes = 10k unidades/mês
-// - 1 Fazenda de Grãos produz 1000 = precisa de ~10 fazendas
-// - Complementado por frutas (3) e vegetais (3) = total ~16/1k
-// - Balanceado entre quantidade e variedade
+// SISTEMA DE CIDADÃOS:
+// - Com educação básica: Pequenas plantações (2-5 funcionários)
+// - Com educação intermediária: Fazendas médias (5-13 funcionários)
+// - Com educação avançada: Grandes fazendas (15-40 funcionários)
+// - Com educação superior: Agronegócio (50-130 funcionários)
 //
-// ENERGIA (8/1k hab):
-// - 1M habitantes = 8k unidades/mês
-// - 1 Usina produz 2000 = precisa de ~4 usinas
-// - Consumo residencial realista
-//
-// FRUTAS/VEGETAIS (3 cada):
-// - São complementos alimentares, não necessidade crítica
-// - Déficit não deveria ser tão severo quanto alimentos básicos
-// - 1M habitantes = 3k de cada = ~4 fazendas de cada tipo
-//
-// MÓVEIS (1/1k):
-// - Pessoas não compram móveis todo mês
-// - 1M habitantes = 1k/mês
-// - ~3 fábricas de móveis suficientes
-//
-// ROUPAS (0.5/1k):
-// - Compra ocasional, não mensal
-// - 1M habitantes = 500/mês
-// - ~1 fábrica de roupas suficiente
-//
-// MEDICAMENTOS (0.3/1k):
-// - Uso ocasional/preventivo
-// - 1M habitantes = 300/mês
-// - ~1 fábrica de medicamentos suficiente
+// ECONOMIA ORGÂNICA:
+// - Cidadãos criam negócios quando há demanda não atendida
+// - Pagam 15% de imposto sobre receita
+// - Geram empregos (conta para taxa de emprego)
+// - Produção conta para necessidades da população
+// - Jogador pode aprovar expansões ou destruir negócios
