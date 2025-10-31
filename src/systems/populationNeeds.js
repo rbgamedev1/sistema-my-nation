@@ -1,4 +1,4 @@
-// src/systems/populationNeeds.js
+// src/systems/populationNeeds.js - CORRIGIDO
 
 export class PopulationNeedsSystem {
   constructor() {
@@ -9,34 +9,34 @@ export class PopulationNeedsSystem {
   getConsumptionRates() {
     return {
       // ALIMENTOS BÁSICOS (críticos)
-      rice: 8,        // Arroz - alimento base
-      beans: 5,       // Feijão - proteína vegetal
-      corn: 4,        // Milho - versátil
+      rice: 8,
+      beans: 5,
+      corn: 4,
       
       // ALIMENTOS IMPORTANTES
-      sugar: 2,       // Açúcar - energia rápida
-      soy: 3,         // Soja - proteína
+      sugar: 2,
+      soy: 3,
       
       // BEBIDAS
-      coffee: 1.5,    // Café - consumo diário moderado
+      coffee: 1.5,
       
       // FRUTAS (variedade)
-      banana: 2,      // Banana - mais consumida
-      orange: 1.5,    // Laranja - vitamina C
-      apple: 1,       // Maçã - saúde
-      lemon: 0.5,     // Limão - tempero
+      banana: 2,
+      orange: 1.5,
+      apple: 1,
+      lemon: 0.5,
       
       // ESPECIARIAS
-      spices: 0.3,    // Especiarias - tempero
+      spices: 0.3,
       
-      // RECURSOS BÁSICOS (mantidos do original)
+      // RECURSOS BÁSICOS
       agua: 15,
       energy: 8,
       
       // RECURSOS SECUNDÁRIOS
       furniture: 1,
-      fruits: 2,      // Frutas gerais (além das específicas)
-      vegetables: 3,  // Vegetais gerais
+      fruits: 2,
+      vegetables: 3,
       clothing: 0.5,
       medicine: 0.3
     };
@@ -127,10 +127,10 @@ export class PopulationNeedsSystem {
 
     // Calcular satisfação geral (pesos diferentes por categoria)
     const weights = {
-      critical: 0.50,    // 50% do peso
-      important: 0.25,   // 25% do peso
-      comfort: 0.15,     // 15% do peso
-      health: 0.10       // 10% do peso
+      critical: 0.50,
+      important: 0.25,
+      comfort: 0.15,
+      health: 0.10
     };
 
     let weightedSum = 0;
@@ -310,7 +310,9 @@ export class PopulationNeedsSystem {
       apple: { name: 'Maçã', icon: '🍎', category: 'comfort', description: 'Fruta saudável' },
       orange: { name: 'Laranja', icon: '🍊', category: 'comfort', description: 'Rica em vitamina C' },
       banana: { name: 'Banana', icon: '🍌', category: 'comfort', description: 'Fruta energética' },
-      spices: { name: 'Especiarias', icon: '🌶️', category: 'comfort', description: 'Temperos variados' }
+      spices: { name: 'Especiarias', icon: '🌶️', category: 'comfort', description: 'Temperos variados' },
+      agua: { name: 'Água', icon: '💧', category: 'critical', description: 'Essencial para vida' },
+      energy: { name: 'Energia', icon: '⚡', category: 'critical', description: 'Eletricidade' }
     };
 
     return products[resource] || { name: resource, icon: '📦', category: 'other', description: 'Recurso' };

@@ -1,4 +1,4 @@
-// src/views/ResourcesTab.jsx - COM NOVOS PRODUTOS AGRÍCOLAS
+// src/views/ResourcesTab.jsx - CORRIGIDO COM RECURSOS EM PORTUGUÊS
 
 import React from 'react';
 import { calculateResourceBalance } from '../utils/calculations';
@@ -354,7 +354,7 @@ const ResourcesTab = ({ nation }) => {
                       )}
                       {infraCons > 0 && (
                         <div className="flex justify-between text-gray-600">
-                          <span>🗿️ Infraestrutura ({nation.facilities.length} benfeitorias):</span>
+                          <span>🏗️ Infraestrutura ({nation.facilities.length} benfeitorias):</span>
                           <span className="font-bold">{infraCons.toFixed(1)} unidades</span>
                         </div>
                       )}

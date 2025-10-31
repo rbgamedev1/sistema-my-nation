@@ -1,4 +1,4 @@
-// src/hooks/useGameLogic.js - COMPLETO COM SISTEMAS DE CIDADÃOS
+// src/hooks/useGameLogic.js - CORRIGIDO
 
 import { useState, useEffect } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -26,21 +26,19 @@ export const useGameLogic = () => {
   const [nation, setNation] = useState(null);
   const [notifications, setNotifications] = useState([]);
   
-  // Sistemas de Cidadãos e Necessidades
   const [citizenSystem, setCitizenSystem] = useState(null);
   const [populationNeeds, setPopulationNeeds] = useState(null);
 
-  // Inicializar sistemas quando o jogo começar
   useEffect(() => {
     if (nation && !citizenSystem) {
       const cs = new CitizenSystem(nation);
       const pn = new PopulationNeedsSystem();
       setCitizenSystem(cs);
       setPopulationNeeds(pn);
+      console.log('[useGameLogic] Sistemas inicializados');
     }
   }, [nation, citizenSystem]);
 
-  // Sistema de Notificações
   const addNotification = (message, type = 'info') => {
     const id = Date.now() + Math.random();
     setNotifications(prev => [...prev, { id, message, type }]);
@@ -49,7 +47,6 @@ export const useGameLogic = () => {
     }, 5000);
   };
 
-  // Iniciar Jogo
   const startGame = (name, nationName) => {
     if (!name || !nationName) {
       addNotification('Preencha todos os campos!', 'error');
@@ -88,8 +85,8 @@ export const useGameLogic = () => {
       educationLevel: 'none',
       economicStatus: 'medium',
       resources: {
-        land: territory.terrasAraveis || 100,
-        water: territory.agua || 500,
+        land: territory.terrasAraveis || 10000,
+        water: territory.agua || 5000,
         rice: 0,
         beans: 0,
         corn: 0,
@@ -123,7 +120,6 @@ export const useGameLogic = () => {
     addNotification('🎉 Bem-vindo! Sua nação foi fundada com sucesso!', 'success');
   };
 
-  // Criar Ministério
   const createMinistry = (type) => {
     if (!nation) return;
 
@@ -159,7 +155,6 @@ export const useGameLogic = () => {
     addNotification(`✅ Ministério de ${ministryData.name} criado com sucesso!`, 'success');
   };
 
-  // Contratar Ministro
   const hireMinister = (ministryId, salary) => {
     if (!nation) return;
 
@@ -199,7 +194,6 @@ export const useGameLogic = () => {
     addNotification(`👔 Ministro contratado com sucesso! Salário: R$ ${salaryNum.toLocaleString()}`, 'success');
   };
 
-  // Atualizar Salário do Ministro
   const updateMinisterSalary = (ministryId, newSalary) => {
     if (!nation) return;
 
@@ -240,7 +234,6 @@ export const useGameLogic = () => {
     );
   };
 
-  // Criar Benfeitoria
   const createFacility = (ministryId, facilityData) => {
     if (!nation) return;
 
@@ -291,10 +284,9 @@ export const useGameLogic = () => {
       treasury: prev.treasury - facilityData.cost
     }));
 
-    addNotification(`🗿️ ${facilityData.name} construída com sucesso!`, 'success');
+    addNotification(`🏗️ ${facilityData.name} construída com sucesso!`, 'success');
   };
 
-  // Atualizar Salário de Cargo
   const updateJobSalary = (facilityId, role, newSalary) => {
     if (!nation) return;
 
@@ -340,7 +332,6 @@ export const useGameLogic = () => {
     );
   };
 
-  // Iniciar Pesquisa
   const startResearch = (techId) => {
     if (!nation) return;
 
@@ -387,7 +378,6 @@ export const useGameLogic = () => {
     );
   };
 
-  // Completar Pesquisa
   const completeResearch = (techId) => {
     const tech = TECHNOLOGIES[techId];
     if (!tech) return;
@@ -416,7 +406,6 @@ export const useGameLogic = () => {
     );
   };
 
-  // Exportar Recursos
   const exportResource = (resource, amount) => {
     if (!nation || !nation.resourceStorage[resource] || nation.resourceStorage[resource] < amount) {
       addNotification('❌ Estoque insuficiente para exportação!', 'error');
@@ -472,7 +461,6 @@ export const useGameLogic = () => {
     );
   };
 
-  // Melhorar Educação
   const upgradeEducation = () => {
     if (!nation) return;
 
@@ -534,7 +522,6 @@ export const useGameLogic = () => {
     }
   };
 
-  // Aprovar Expansão de Negócio
   const approveBusinessExpansion = (businessId) => {
     if (!nation || !citizenSystem) return;
 
@@ -594,7 +581,6 @@ export const useGameLogic = () => {
     }
   };
 
-  // Destruir Negócio de Cidadão
   const destroyCitizenBusiness = (businessId) => {
     if (!nation || !citizenSystem) return;
 
@@ -624,7 +610,6 @@ export const useGameLogic = () => {
     }
   };
 
-  // Obter Produção Autônoma
   const getAutonomousProduction = () => {
     if (!citizenSystem) return {};
     
@@ -635,7 +620,6 @@ export const useGameLogic = () => {
     return production;
   };
 
-  // Obter Relatório de Satisfação
   const getSatisfactionReport = () => {
     if (!nation || !populationNeeds) return null;
 
@@ -650,9 +634,10 @@ export const useGameLogic = () => {
     );
   };
 
-  // Próximo Turno
   const nextTurn = () => {
     if (!nation) return;
+
+    console.log('[nextTurn] ========== INÍCIO DO TURNO ==========');
 
     const finances = calculateFinances(nation);
     
@@ -689,9 +674,12 @@ export const useGameLogic = () => {
       return { ...research, progress: newProgress };
     }).filter(Boolean);
 
+    // SISTEMA DE CIDADÃOS - CORRIGIDO
     let citizenResults = null;
     if (citizenSystem && nation.educationLevel !== 'none') {
+      console.log('[nextTurn] Processando turno de cidadãos...');
       citizenResults = citizenSystem.processTurn(nation);
+      console.log('[nextTurn] Resultados:', citizenResults);
     }
 
     let satisfactionReport = null;
@@ -711,6 +699,14 @@ export const useGameLogic = () => {
     const adjustedBalance = finances.balance * satisfactionEffects.taxCompliance;
     const adjustedGrowth = Math.floor(populationGrowth * satisfactionEffects.growth);
 
+    // ATUALIZAR PRODUÇÃO DE CIDADÃOS
+    const updatedProduction = { ...nation.production };
+    if (citizenResults && citizenResults.productionAdded) {
+      Object.entries(citizenResults.productionAdded).forEach(([product, amount]) => {
+        updatedProduction[product] = (updatedProduction[product] || 0) + amount;
+      });
+    }
+
     setNation(prev => ({
       ...prev,
       currentMonth: prev.currentMonth + 1,
@@ -728,10 +724,7 @@ export const useGameLogic = () => {
         ...prev.technologies,
         researching: updatedResearching
       },
-      production: {
-        ...prev.production,
-        ...(citizenResults?.productionAdded || {})
-      }
+      production: updatedProduction
     }));
 
     completedResearches.forEach(techId => {
@@ -877,6 +870,8 @@ export const useGameLogic = () => {
         }
       });
     }
+
+    console.log('[nextTurn] ========== FIM DO TURNO ==========');
   };
 
   return {

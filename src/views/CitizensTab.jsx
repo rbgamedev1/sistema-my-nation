@@ -1,4 +1,4 @@
-// src/views/CitizensTab.jsx
+// src/views/CitizensTab.jsx - CORRIGIDO
 
 import React, { useState } from 'react';
 import { Users, Briefcase, TrendingUp, Building, AlertCircle } from 'lucide-react';
@@ -12,7 +12,6 @@ const CitizensTab = ({
   onDestroyBusiness
 }) => {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
-  const [selectedCitizen, setSelectedCitizen] = useState(null);
 
   if (!citizenSystem || !populationNeeds) {
     return (
@@ -44,14 +43,17 @@ const CitizensTab = ({
     businessesByProduct[business.product].push(business);
   });
 
-  // Calcular demanda
+  // Calcular produção autônoma para o relatório
+  const autonomousProduction = {};
+  citizenSystem.autonomousBusinesses.forEach(b => {
+    autonomousProduction[b.product] = (autonomousProduction[b.product] || 0) + b.production;
+  });
+
+  // Calcular relatório de satisfação
   const satisfactionReport = populationNeeds.generateReport(
     nation.population,
     nation.resources || {},
-    citizenSystem.autonomousBusinesses.reduce((acc, b) => {
-      acc[b.product] = (acc[b.product] || 0) + b.production;
-      return acc;
-    }, {}),
+    autonomousProduction,
     nation.educationLevel,
     nation.economicStatus
   );
@@ -148,17 +150,17 @@ const CitizensTab = ({
               const label = labels[category];
 
               return (
-                <div key={category} className={`bg-${label.color}-50 p-4 rounded-lg border-2 border-${label.color}-300`}>
+                <div key={category} className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">{label.icon}</span>
                     <span className="font-bold">{label.name}</span>
                   </div>
-                  <p className="text-3xl font-bold" style={{ color: `var(--${label.color}-600)` }}>
+                  <p className="text-3xl font-bold text-gray-700">
                     {data.percentage.toFixed(0)}%
                   </p>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div
-                      className={`bg-${label.color}-600 h-2 rounded-full transition-all`}
+                      className="bg-blue-600 h-2 rounded-full transition-all"
                       style={{ width: `${data.percentage}%` }}
                     />
                   </div>
@@ -378,9 +380,19 @@ const CitizensTab = ({
           <p className="text-gray-600 mb-4">
             {nation.educationLevel === 'none' 
               ? 'Melhore a educação para permitir que cidadãos criem seus próprios negócios.'
-              : 'Cidadãos começarão a criar negócios automaticamente quando houver demanda não atendida pelo governo.'
+              : 'Cidadãos começarão a criar negócios automaticamente quando houver demanda não atendida pelo governo (15% de chance por mês).'
             }
           </p>
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 text-left max-w-2xl mx-auto">
+            <p className="text-sm font-bold text-gray-700 mb-2">📊 Condições para criar negócios:</p>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li>✓ Nível de educação: {nation.educationLevel !== 'none' ? '✅ OK' : '❌ Necessário'}</li>
+              <li>✓ Terra disponível: {(nation.resources?.land || 0).toLocaleString()} unidades</li>
+              <li>✓ Água disponível: {(nation.resources?.water || 0).toLocaleString()} unidades</li>
+              <li>✓ Déficit de recursos: Verifique na aba Recursos</li>
+              <li>✓ Chance por turno: 15%</li>
+            </ul>
+          </div>
         </div>
       )}
 
@@ -392,10 +404,10 @@ const CitizensTab = ({
           <li>• <strong>Educação Intermediária:</strong> Negócios médios (5-13 funcionários, 80-180 produção)</li>
           <li>• <strong>Educação Avançada:</strong> Grandes fazendas (15-40 funcionários, 180-380 produção)</li>
           <li>• <strong>Educação Superior:</strong> Agronegócio corporativo (50-130 funcionários, 380-780 produção)</li>
-          <li>• <strong>Criação Automática:</strong> 5% de chance por mês quando há demanda não atendida</li>
+          <li>• <strong>Criação Automática:</strong> 15% de chance por mês quando há demanda não atendida</li>
           <li>• <strong>Expansão:</strong> Após 6 meses, negócios podem expandir se o proprietário tiver educação suficiente</li>
           <li>• <strong>Benefícios:</strong> Gera empregos, paga impostos (15% da receita) e atende necessidades da população</li>
-          <li>• <strong>Recursos:</strong> Cidadãos usam terra e água, governo pode subsidiar criação</li>
+          <li>• <strong>Recursos:</strong> Cidadãos usam terra e água, governo subsidia 50% do custo</li>
           <li>• <strong>Destruição:</strong> Você pode destruir negócios, mas perderá empregos e receita de impostos</li>
         </ul>
       </div>

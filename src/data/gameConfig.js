@@ -1,4 +1,4 @@
-// src/data/gameConfig.js - ATUALIZADO COM PRODUTOS AGRÍCOLAS
+// src/data/gameConfig.js - CORRIGIDO
 
 export const GAME_CONFIG = {
   INITIAL_POPULATION: 1000000,
@@ -16,42 +16,40 @@ export const GAME_CONFIG = {
     POOR: 20
   },
   
-  // Consumo per capita (por 1000 habitantes por mês) - EXPANDIDO
+  // Consumo per capita (por 1000 habitantes por mês) - PRODUTOS EM PORTUGUÊS
   POPULATION_CONSUMPTION: {
-    // Recursos Críticos (essenciais para sobrevivência)
-    agua: 15,        // Água
-    energy: 8,       // Energia
+    // Recursos Críticos
+    agua: 15,
+    energy: 8,
     
-    // ALIMENTOS BÁSICOS (críticos - grãos)
-    rice: 8,         // Arroz - alimento base brasileiro
-    beans: 5,        // Feijão - proteína vegetal essencial
-    corn: 4,         // Milho - versátil
+    // ALIMENTOS BÁSICOS (críticos)
+    rice: 8,
+    beans: 5,
+    corn: 4,
     
     // ALIMENTOS IMPORTANTES
-    sugar: 2,        // Açúcar - energia rápida
-    soy: 3,          // Soja - proteína e óleo
+    sugar: 2,
+    soy: 3,
     
     // BEBIDAS
-    coffee: 1.5,     // Café - consumo diário moderado
+    coffee: 1.5,
     
-    // FRUTAS (variedade)
-    banana: 2,       // Banana - mais consumida
-    orange: 1.5,     // Laranja - vitamina C
-    apple: 1,        // Maçã - saúde
-    lemon: 0.5,      // Limão - tempero
+    // FRUTAS
+    banana: 2,
+    orange: 1.5,
+    apple: 1,
+    lemon: 0.5,
     
     // ESPECIARIAS
-    spices: 0.3,     // Especiarias - tempero
+    spices: 0.3,
     
-    // Recursos Secundários (mantidos)
+    // Recursos Secundários
     furniture: 1,
-    fruits: 2,       // Frutas gerais (além das específicas)
-    vegetables: 3,   // Vegetais gerais
+    fruits: 2,
+    vegetables: 3,
     clothing: 0.5,
     medicine: 0.3,
-    
-    // Mantido para compatibilidade
-    food: 10         // Alimentos gerais (será gradualmente substituído pelos específicos)
+    food: 10
   },
   
   TECHNOLOGY: {
@@ -60,7 +58,6 @@ export const GAME_CONFIG = {
     RESEARCH_COST_MULTIPLIER: 1.0
   },
   
-  // NOVOS: Sistema de Educação
   EDUCATION: {
     COSTS: {
       basic: 50000,
@@ -76,18 +73,16 @@ export const GAME_CONFIG = {
     }
   },
   
-  // NOVOS: Sistema de Cidadãos
   CITIZENS: {
-    BUSINESS_CREATION_CHANCE: 0.05, // 5% por mês
-    TAX_RATE: 0.15, // 15% de imposto sobre receita
-    EXPANSION_COOLDOWN: 6, // Meses antes de poder expandir
-    GOVERNMENT_SUBSIDY: 0.5 // Governo subsidia 50% do custo
+    BUSINESS_CREATION_CHANCE: 0.15, // 15% por mês (aumentado)
+    TAX_RATE: 0.15,
+    EXPANSION_COOLDOWN: 6,
+    GOVERNMENT_SUBSIDY: 0.5
   }
 };
 
-// Mapeamento de nomes de recursos
+// Mapeamento de nomes de recursos - TUDO EM PORTUGUÊS
 export const RESOURCE_NAMES = {
-  // Recursos básicos
   agua: 'Água',
   petroleo: 'Petróleo',
   gas: 'Gás Natural',
@@ -148,7 +143,6 @@ export const RESOURCE_ICONS = {
   medicine: '💊',
   floresta: '🌲',
   
-  // Novos produtos agrícolas
   rice: '🍚',
   beans: '🫘',
   corn: '🌽',
@@ -173,30 +167,9 @@ export const RESOURCE_CATEGORIES = {
 
 // Penalidades por déficit
 export const DEFICIT_PENALTIES = {
-  critical: -12,  // -12% felicidade por recurso crítico
-  important: -5,  // -5% felicidade por recurso importante
-  comfort: -2,    // -2% felicidade por recurso de conforto
-  health: -8,     // -8% felicidade por medicamentos
-  industrial: 0   // Não afeta felicidade, apenas impede construções
+  critical: -12,
+  important: -5,
+  comfort: -2,
+  health: -8,
+  industrial: 0
 };
-
-// Notas sobre o sistema:
-// 
-// ALIMENTOS BÁSICOS:
-// - Arroz (8/1k): Base da alimentação
-// - Feijão (5/1k): Proteína essencial
-// - Milho (4/1k): Alimento versátil
-// - 1M habitantes = 8k arroz + 5k feijão + 4k milho = 17k alimentos básicos/mês
-//
-// SISTEMA DE CIDADÃOS:
-// - Com educação básica: Pequenas plantações (2-5 funcionários)
-// - Com educação intermediária: Fazendas médias (5-13 funcionários)
-// - Com educação avançada: Grandes fazendas (15-40 funcionários)
-// - Com educação superior: Agronegócio (50-130 funcionários)
-//
-// ECONOMIA ORGÂNICA:
-// - Cidadãos criam negócios quando há demanda não atendida
-// - Pagam 15% de imposto sobre receita
-// - Geram empregos (conta para taxa de emprego)
-// - Produção conta para necessidades da população
-// - Jogador pode aprovar expansões ou destruir negócios

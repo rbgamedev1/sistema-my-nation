@@ -1,4 +1,4 @@
-// src/systems/citizenSystem.js
+// src/systems/citizenSystem.js - CORRIGIDO
 
 export class CitizenSystem {
   constructor(nation) {
@@ -100,27 +100,50 @@ export class CitizenSystem {
     return Math.floor(Math.random() * (range.max - range.min) + range.min);
   }
 
-  // Calcular demanda de produtos
-  calculateProductDemand(nation, populationNeeds) {
-    if (!populationNeeds) return {};
-
-    const needs = populationNeeds.calculateNeeds(nation.population);
-    const available = nation.resources || {};
-    const government_production = nation.production || {};
-
-    const demand = {};
+  // Calcular demanda de produtos - CORRIGIDO
+  calculateProductDemand(nation) {
     const products = this.getAgriculturalProducts();
+    const demand = {};
+    
+    // Consumo per capita por 1000 habitantes
+    const consumptionRates = {
+      rice: 8,
+      beans: 5,
+      corn: 4,
+      sugar: 2,
+      soy: 3,
+      coffee: 1.5,
+      banana: 2,
+      orange: 1.5,
+      apple: 1,
+      lemon: 0.5,
+      spices: 0.3
+    };
+
+    const populationInThousands = nation.population / 1000;
 
     Object.keys(products).forEach(product => {
-      const needed = needs[product] || 0;
-      const hasGovernment = (available[product] || 0) + (government_production[product] || 0);
-      const deficit = Math.max(0, needed - hasGovernment);
+      const rate = consumptionRates[product] || 0;
+      const needed = populationInThousands * rate;
+      
+      // Produção do governo
+      const governmentProduction = nation.production?.[product] || 0;
+      
+      // Produção de cidadãos autônomos
+      const citizenProduction = this.autonomousBusinesses
+        .filter(b => b.product === product)
+        .reduce((sum, b) => sum + b.production, 0);
+      
+      const totalProduction = governmentProduction + citizenProduction;
+      const deficit = Math.max(0, needed - totalProduction);
       
       if (deficit > 0) {
         demand[product] = {
           deficit,
+          needed,
+          currentProduction: totalProduction,
           priority: products[product].priority,
-          potentialRevenue: deficit * products[product].basePrice * 0.7 // Cidadão paga 70% do preço de mercado
+          potentialRevenue: deficit * products[product].basePrice * 0.7
         };
       }
     });
@@ -128,26 +151,42 @@ export class CitizenSystem {
     return demand;
   }
 
-  // Tentar criar novo negócio autônomo
-  tryCreateBusiness(nation, populationNeeds) {
+  // Tentar criar novo negócio autônomo - CORRIGIDO
+  tryCreateBusiness(nation) {
     const educationCaps = this.getEducationLevels();
     const currentCaps = educationCaps[nation.educationLevel];
 
-    if (!currentCaps.canStartBusiness) return null;
+    if (!currentCaps.canStartBusiness) {
+      console.log('[CitizenSystem] Educação insuficiente para criar negócios');
+      return null;
+    }
 
-    // Chance base de criar negócio: 5% por mês
-    if (Math.random() > 0.05) return null;
+    // Chance base de criar negócio: 15% por mês (aumentado de 5%)
+    const roll = Math.random();
+    console.log('[CitizenSystem] Tentando criar negócio. Roll:', roll);
+    
+    if (roll > 0.15) {
+      console.log('[CitizenSystem] Chance não passou (precisa <= 0.15)');
+      return null;
+    }
 
     // Calcular demanda
-    const demand = this.calculateProductDemand(nation, populationNeeds);
+    const demand = this.calculateProductDemand(nation);
     const demandProducts = Object.entries(demand)
       .sort((a, b) => b[1].deficit - a[1].deficit);
 
-    if (demandProducts.length === 0) return null;
+    console.log('[CitizenSystem] Demanda calculada:', demandProducts.length, 'produtos em déficit');
+
+    if (demandProducts.length === 0) {
+      console.log('[CitizenSystem] Nenhum produto em déficit');
+      return null;
+    }
 
     // Selecionar produto com maior demanda
     const [product, demandInfo] = demandProducts[0];
     const productInfo = this.getAgriculturalProducts()[product];
+
+    console.log('[CitizenSystem] Produto selecionado:', productInfo.name, 'Déficit:', demandInfo.deficit);
 
     // Criar cidadão empreendedor
     const citizen = this.generateCitizen(nation.educationLevel, nation.economicStatus);
@@ -159,9 +198,19 @@ export class CitizenSystem {
     // Calcular custos
     const costs = this.calculateBusinessCosts(businessSize, product);
 
+    console.log('[CitizenSystem] Custos do negócio:', costs);
+    console.log('[CitizenSystem] Recursos disponíveis - Terra:', nation.resources?.land, 'Água:', nation.resources?.water);
+
     // Verificar se tem recursos disponíveis
-    if ((nation.resources.land || 0) < costs.land || 
-        (nation.resources.water || 0) < costs.water) {
+    if ((nation.resources?.land || 0) < costs.land) {
+      console.log('[CitizenSystem] Terra insuficiente');
+      this.citizens.pop(); // Remove cidadão criado
+      return null;
+    }
+    
+    if ((nation.resources?.water || 0) < costs.water) {
+      console.log('[CitizenSystem] Água insuficiente');
+      this.citizens.pop(); // Remove cidadão criado
       return null;
     }
 
@@ -169,8 +218,14 @@ export class CitizenSystem {
     const citizenPayment = Math.min(citizen.wealth * 0.3, costs.money * 0.5);
     const governmentSupport = costs.money - citizenPayment;
 
-    // Verificar se governo tem dinheiro
-    if (nation.treasury < governmentSupport) return null;
+    console.log('[CitizenSystem] Pagamento cidadão:', citizenPayment, 'Subsídio governo:', governmentSupport);
+
+    // Verificar se governo tem dinheiro para subsídio
+    if (nation.treasury < governmentSupport) {
+      console.log('[CitizenSystem] Governo sem dinheiro para subsídio');
+      this.citizens.pop(); // Remove cidadão criado
+      return null;
+    }
 
     // Criar negócio
     const business = {
@@ -182,7 +237,7 @@ export class CitizenSystem {
       size: businessSize.name,
       employees: businessSize.employees,
       production: businessSize.production,
-      monthlyTax: Math.floor(businessSize.production * productInfo.basePrice * 0.15), // 15% de imposto
+      monthlyTax: Math.floor(businessSize.production * productInfo.basePrice * 0.15),
       costs: costs,
       monthlyProfit: Math.floor(businessSize.production * productInfo.basePrice * 0.3),
       createdAt: Date.now(),
@@ -193,6 +248,8 @@ export class CitizenSystem {
     this.autonomousBusinesses.push(business);
     citizen.businessId = business.id;
     citizen.wealth -= citizenPayment;
+
+    console.log('[CitizenSystem] ✅ Negócio criado com sucesso!', business.name);
 
     return {
       success: true,
@@ -216,29 +273,29 @@ export class CitizenSystem {
     const sizes = {
       basic: {
         name: 'pequeno',
-        employees: Math.floor(Math.random() * 3) + 2, // 2-5
-        production: Math.floor(Math.random() * 50) + 30, // 30-80
+        employees: Math.floor(Math.random() * 3) + 2,
+        production: Math.floor(Math.random() * 50) + 30,
         landSize: 10,
         waterUsage: 50
       },
       intermediate: {
         name: 'médio',
-        employees: Math.floor(Math.random() * 8) + 5, // 5-13
-        production: Math.floor(Math.random() * 100) + 80, // 80-180
+        employees: Math.floor(Math.random() * 8) + 5,
+        production: Math.floor(Math.random() * 100) + 80,
         landSize: 30,
         waterUsage: 150
       },
       advanced: {
         name: 'grande',
-        employees: Math.floor(Math.random() * 25) + 15, // 15-40
-        production: Math.floor(Math.random() * 200) + 180, // 180-380
+        employees: Math.floor(Math.random() * 25) + 15,
+        production: Math.floor(Math.random() * 200) + 180,
         landSize: 80,
         waterUsage: 400
       },
       superior: {
         name: 'corporativo',
-        employees: Math.floor(Math.random() * 80) + 50, // 50-130
-        production: Math.floor(Math.random() * 400) + 380, // 380-780
+        employees: Math.floor(Math.random() * 80) + 50,
+        production: Math.floor(Math.random() * 400) + 380,
         landSize: 200,
         waterUsage: 1000
       }
@@ -264,23 +321,18 @@ export class CitizenSystem {
     const owner = this.citizens.find(c => c.id === business.ownerId);
     if (!owner) return null;
 
-    // Precisa estar ativo por pelo menos 6 meses
     if (business.monthsActive < 6) return null;
-
-    // Já marcado como expandível
     if (!business.expandable) return null;
 
     const educationCaps = this.getEducationLevels();
     const currentCaps = educationCaps[owner.educationLevel];
     
-    // Verificar se pode expandir baseado no nível de educação
     const sizeOrder = ['pequeno', 'médio', 'grande', 'corporativo'];
     const currentIndex = sizeOrder.indexOf(business.size);
     const maxIndex = sizeOrder.indexOf(currentCaps.businessSize);
 
     if (currentIndex >= maxIndex) return null;
 
-    // Calcular custos de expansão
     const nextSize = this.determineBusinessSize(
       Object.keys(educationCaps).find(k => educationCaps[k].businessSize === sizeOrder[currentIndex + 1]),
       owner.wealth
@@ -314,7 +366,6 @@ export class CitizenSystem {
     const owner = this.citizens.find(c => c.id === business.ownerId);
     if (!owner) return { success: false, reason: 'Proprietário não encontrado' };
 
-    // Atualizar negócio
     const nextSize = this.determineBusinessSize(
       owner.educationLevel === 'basic' ? 'intermediate' :
       owner.educationLevel === 'intermediate' ? 'advanced' : 'superior',
@@ -331,7 +382,7 @@ export class CitizenSystem {
     business.monthsActive = 0;
 
     owner.experience += 50;
-    owner.wealth += expansion.benefits.additionalTax * 6; // Bônus por expandir
+    owner.wealth += expansion.benefits.additionalTax * 6;
 
     return {
       success: true,
@@ -348,16 +399,13 @@ export class CitizenSystem {
     const business = this.autonomousBusinesses[businessIndex];
     const owner = this.citizens.find(c => c.id === business.ownerId);
 
-    // Remover negócio
     this.autonomousBusinesses.splice(businessIndex, 1);
 
-    // Atualizar proprietário
     if (owner) {
       owner.businessId = null;
-      owner.wealth += Math.floor(business.monthlyProfit * 3); // Compensação
+      owner.wealth += Math.floor(business.monthlyProfit * 3);
     }
 
-    // Retornar recursos (50% do investimento)
     return {
       success: true,
       jobsLost: business.employees,
@@ -369,8 +417,12 @@ export class CitizenSystem {
     };
   }
 
-  // Processar turno
+  // Processar turno - CORRIGIDO
   processTurn(nation) {
+    console.log('[CitizenSystem] ========== PROCESSANDO TURNO ==========');
+    console.log('[CitizenSystem] Nível de educação:', nation.educationLevel);
+    console.log('[CitizenSystem] Negócios ativos:', this.autonomousBusinesses.length);
+    
     const events = [];
     let taxRevenue = 0;
     let totalJobs = 0;
@@ -380,43 +432,41 @@ export class CitizenSystem {
     // Atualizar negócios existentes
     this.autonomousBusinesses.forEach(business => {
       business.monthsActive++;
-      
-      // Arrecadar impostos
       taxRevenue += business.monthlyTax;
       totalJobs += business.employees;
-
-      // Adicionar produção
       productionAdded[business.product] = (productionAdded[business.product] || 0) + business.production;
 
-      // Aumentar riqueza do proprietário
       const owner = this.citizens.find(c => c.id === business.ownerId);
       if (owner) {
         owner.wealth += business.monthlyProfit;
         owner.experience += 5;
       }
 
-      // Verificar oportunidade de expansão
       if (business.monthsActive >= 6 && business.monthsActive % 6 === 0) {
         business.expandable = true;
         const expansion = this.checkBusinessExpansion(business, nation);
         if (expansion) {
-          expansionOpportunities.push({
-            business,
-            expansion,
-            owner
-          });
+          expansionOpportunities.push({ business, expansion, owner });
         }
       }
     });
 
-    // Tentar criar novo negócio (máximo 1 por turno)
-    const newBusiness = this.tryCreateBusiness(nation, nation.populationNeeds);
+    // Tentar criar novo negócio
+    const newBusiness = this.tryCreateBusiness(nation);
     if (newBusiness) {
       events.push({
         type: 'citizen_business_created',
         ...newBusiness
       });
+      console.log('[CitizenSystem] ✅ Novo negócio criado:', newBusiness.business.name);
+    } else {
+      console.log('[CitizenSystem] ❌ Nenhum negócio criado este turno');
     }
+
+    console.log('[CitizenSystem] Receita de impostos:', taxRevenue);
+    console.log('[CitizenSystem] Total de empregos:', totalJobs);
+    console.log('[CitizenSystem] Produção adicionada:', productionAdded);
+    console.log('[CitizenSystem] ========================================');
 
     return {
       taxRevenue,

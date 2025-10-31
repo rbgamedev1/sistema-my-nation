@@ -1,4 +1,4 @@
-// src/utils/calculations.js - ATUALIZADO COM NOVOS RECURSOS
+// src/utils/calculations.js - CORRIGIDO
 
 import { GAME_CONFIG, RESOURCE_CATEGORIES, DEFICIT_PENALTIES } from '../data/gameConfig';
 
@@ -18,8 +18,8 @@ export const generateTerritory = () => {
     resources.cobre = Math.floor(Math.random() * 500000);
     resources.petroleo = Math.floor(Math.random() * 300000);
   } else {
-    resources.terrasAraveis = Math.floor(Math.random() * 500000) + 300000;
-    resources.agua = Math.floor(Math.random() * 1000000) + 500000;
+    resources.terrasAraveis = Math.floor(Math.random() * 50000) + 30000;
+    resources.agua = Math.floor(Math.random() * 100000) + 50000;
     resources.ferro = Math.floor(Math.random() * 200000);
   }
 
@@ -37,7 +37,7 @@ export const calculatePopulationResourceConsumption = (population) => {
   return consumption;
 };
 
-// Calcula balanço de recursos (produção vs consumo)
+// Calcula balanço de recursos (produção vs consumo) - CORRIGIDO
 export const calculateResourceBalance = (nation) => {
   const production = {};
   const consumption = {};
