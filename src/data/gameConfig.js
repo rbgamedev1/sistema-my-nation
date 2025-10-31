@@ -1,7 +1,7 @@
 // src/data/gameConfig.js - CORRIGIDO
 
 export const GAME_CONFIG = {
-  INITIAL_POPULATION: 1000000,
+  INITIAL_POPULATION: 1000, // CORRIGIDO: agora 1000 ao invés de 1.000.000
   INITIAL_TREASURY: 5000000,
   BASE_WORKER_SALARY: 2000,
   EMPLOYMENT_TAX_RATE: 0.15,
@@ -74,10 +74,10 @@ export const GAME_CONFIG = {
   },
   
   CITIZENS: {
-    BUSINESS_CREATION_CHANCE: 0.15, // 15% por mês (aumentado)
+    BUSINESS_CREATION_CHANCE: 0.30, // CORRIGIDO: 30% ao invés de 15%
     TAX_RATE: 0.15,
     EXPANSION_COOLDOWN: 6,
-    GOVERNMENT_SUBSIDY: 0.5
+    GOVERNMENT_SUBSIDY: 0 // CORRIGIDO: 0% - empresas são 100% privadas
   }
 };
 
@@ -89,7 +89,6 @@ export const RESOURCE_NAMES = {
   ferro: 'Ferro',
   ouro: 'Ouro',
   cobre: 'Cobre',
-  terrasAraveis: 'Terras Aráveis',
   energy: 'Energia',
   fuel: 'Combustível',
   madeira: 'Madeira',
@@ -131,7 +130,6 @@ export const RESOURCE_ICONS = {
   ferro: '⚙️',
   ouro: '🏆',
   cobre: '🔶',
-  terrasAraveis: '🌾',
   food: '🍞',
   energy: '⚡',
   fuel: '⛽',
@@ -162,7 +160,7 @@ export const RESOURCE_CATEGORIES = {
   important: ['corn', 'sugar', 'soy', 'coffee', 'vegetables', 'food'],
   comfort: ['banana', 'orange', 'apple', 'lemon', 'spices', 'fruits', 'furniture', 'clothing'],
   health: ['medicine'],
-  industrial: ['petroleo', 'gas', 'ferro', 'ouro', 'cobre', 'madeira', 'fuel', 'floresta', 'terrasAraveis']
+  industrial: ['petroleo', 'gas', 'ferro', 'ouro', 'cobre', 'madeira', 'fuel', 'floresta']
 };
 
 // Penalidades por déficit

@@ -1,4 +1,4 @@
-// src/views/CitizensTab.jsx - CORRIGIDO
+// src/views/CitizensTab.jsx - CORRIGIDO (Sem Crash)
 
 import React, { useState } from 'react';
 import { Users, Briefcase, TrendingUp, Building, AlertCircle } from 'lucide-react';
@@ -13,7 +13,8 @@ const CitizensTab = ({
 }) => {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
 
-  if (!citizenSystem || !populationNeeds) {
+  // Verificação de sistemas
+  if (!citizenSystem) {
     return (
       <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded">
         <div className="flex items-center gap-3">
@@ -21,7 +22,7 @@ const CitizensTab = ({
           <div>
             <h3 className="font-bold text-xl">Sistema de Cidadãos Não Inicializado</h3>
             <p className="text-gray-700 mt-2">
-              O sistema de cidadãos será inicializado automaticamente ao começar um novo jogo.
+              O sistema de cidadãos será inicializado automaticamente. Tente avançar um turno.
             </p>
           </div>
         </div>
@@ -32,31 +33,59 @@ const CitizensTab = ({
   const statistics = citizenSystem.getStatistics();
   const educationLevels = citizenSystem.getEducationLevels();
   const currentEducation = educationLevels[nation.educationLevel];
-  const products = citizenSystem.getAgriculturalProducts();
+
+  // Calcular produção autônoma
+  const autonomousProduction = {};
+  if (citizenSystem.autonomousBusinesses) {
+    citizenSystem.autonomousBusinesses.forEach(b => {
+      autonomousProduction[b.product] = (autonomousProduction[b.product] || 0) + b.production;
+    });
+  }
+
+  // Calcular relatório de satisfação (com fallback se populationNeeds não existir)
+  let satisfactionReport = null;
+  if (populationNeeds) {
+    try {
+      satisfactionReport = populationNeeds.generateReport(
+        nation.population,
+        nation.resources || {},
+        autonomousProduction,
+        nation.educationLevel,
+        nation.economicStatus || 'medium'
+      );
+    } catch (error) {
+      console.error('[CitizensTab] Erro ao gerar relatório:', error);
+    }
+  }
 
   // Agrupar negócios por produto
   const businessesByProduct = {};
-  citizenSystem.autonomousBusinesses.forEach(business => {
-    if (!businessesByProduct[business.product]) {
-      businessesByProduct[business.product] = [];
+  if (citizenSystem.autonomousBusinesses) {
+    citizenSystem.autonomousBusinesses.forEach(business => {
+      if (!businessesByProduct[business.product]) {
+        businessesByProduct[business.product] = [];
+      }
+      businessesByProduct[business.product].push(business);
+    });
+  }
+
+  // Obter tipos de negócios
+  let businessTypes = {};
+  try {
+    businessTypes = citizenSystem.getBusinessTypes ? citizenSystem.getBusinessTypes() : {};
+  } catch (error) {
+    console.error('[CitizensTab] Erro ao obter tipos de negócio:', error);
+  }
+
+  // Função auxiliar para obter info do produto
+  const getProductInfo = (product) => {
+    for (const category of Object.values(businessTypes)) {
+      if (category[product]) {
+        return category[product];
+      }
     }
-    businessesByProduct[business.product].push(business);
-  });
-
-  // Calcular produção autônoma para o relatório
-  const autonomousProduction = {};
-  citizenSystem.autonomousBusinesses.forEach(b => {
-    autonomousProduction[b.product] = (autonomousProduction[b.product] || 0) + b.production;
-  });
-
-  // Calcular relatório de satisfação
-  const satisfactionReport = populationNeeds.generateReport(
-    nation.population,
-    nation.resources || {},
-    autonomousProduction,
-    nation.educationLevel,
-    nation.economicStatus
-  );
+    return { name: product, icon: '📦', basePrice: 50 };
+  };
 
   return (
     <div className="space-y-6">
@@ -78,10 +107,10 @@ const CitizensTab = ({
                 nation.educationLevel === 'advanced' ? 'Avançado' : 'Superior'
               }</p>
               
-              {currentEducation.canStartBusiness && (
+              {currentEducation && currentEducation.canStartBusiness && (
                 <div className="mt-3 text-sm">
-                  <p>✓ Cidadãos podem criar negócios {currentEducation.businessSize}</p>
-                  <p>✓ Capacidade máxima: {currentEducation.employeeCapacity} funcionários</p>
+                  <p>✓ Cidadãos podem criar negócios</p>
+                  <p>✓ Capacidade máxima: {currentEducation.maxEmployees} funcionários</p>
                 </div>
               )}
             </div>
@@ -105,7 +134,7 @@ const CitizensTab = ({
             <span className="text-gray-600">Cidadãos Empreendedores</span>
             <Users className="text-blue-500" size={24} />
           </div>
-          <p className="text-3xl font-bold text-blue-600">{statistics.totalCitizens}</p>
+          <p className="text-3xl font-bold text-blue-600">{statistics.totalCitizens || 0}</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
@@ -113,7 +142,7 @@ const CitizensTab = ({
             <span className="text-gray-600">Negócios Ativos</span>
             <Building className="text-green-500" size={24} />
           </div>
-          <p className="text-3xl font-bold text-green-600">{statistics.totalBusinesses}</p>
+          <p className="text-3xl font-bold text-green-600">{statistics.totalBusinesses || 0}</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
@@ -121,7 +150,7 @@ const CitizensTab = ({
             <span className="text-gray-600">Empregos Criados</span>
             <Briefcase className="text-purple-500" size={24} />
           </div>
-          <p className="text-3xl font-bold text-purple-600">{statistics.totalJobs.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-purple-600">{(statistics.totalJobs || 0).toLocaleString()}</p>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
@@ -129,118 +158,101 @@ const CitizensTab = ({
             <span className="text-gray-600">Produção Total</span>
             <TrendingUp className="text-orange-500" size={24} />
           </div>
-          <p className="text-3xl font-bold text-orange-600">{statistics.totalProduction.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-orange-600">{(statistics.totalProduction || 0).toLocaleString()}</p>
         </div>
       </div>
 
       {/* Satisfação da População */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-2xl font-bold mb-4">😊 Satisfação da População</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {Object.entries(satisfactionReport.satisfaction)
-            .filter(([key]) => ['critical', 'important', 'comfort', 'health'].includes(key))
-            .map(([category, data]) => {
-              const labels = {
-                critical: { name: 'Críticos', icon: '💀', color: 'red' },
-                important: { name: 'Importantes', icon: '⚠️', color: 'orange' },
-                comfort: { name: 'Conforto', icon: '😊', color: 'yellow' },
-                health: { name: 'Saúde', icon: '💊', color: 'blue' }
-              };
-              const label = labels[category];
-
-              return (
-                <div key={category} className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{label.icon}</span>
-                    <span className="font-bold">{label.name}</span>
-                  </div>
-                  <p className="text-3xl font-bold text-gray-700">
-                    {data.percentage.toFixed(0)}%
-                  </p>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all"
-                      style={{ width: `${data.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-
-        <div className={`p-6 rounded-lg border-2 ${
-          satisfactionReport.satisfaction.overallSatisfaction >= 80 ? 'bg-green-50 border-green-500' :
-          satisfactionReport.satisfaction.overallSatisfaction >= 60 ? 'bg-blue-50 border-blue-500' :
-          satisfactionReport.satisfaction.overallSatisfaction >= 40 ? 'bg-yellow-50 border-yellow-500' :
-          'bg-red-50 border-red-500'
-        }`}>
-          <h4 className="text-xl font-bold mb-2">Satisfação Geral</h4>
-          <p className="text-4xl font-bold mb-2">
-            {satisfactionReport.satisfaction.overallSatisfaction}%
-          </p>
-          <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
-            <div
-              className={`h-4 rounded-full transition-all ${
-                satisfactionReport.satisfaction.overallSatisfaction >= 80 ? 'bg-green-600' :
-                satisfactionReport.satisfaction.overallSatisfaction >= 60 ? 'bg-blue-600' :
-                satisfactionReport.satisfaction.overallSatisfaction >= 40 ? 'bg-yellow-600' :
-                'bg-red-600'
-              }`}
-              style={{ width: `${satisfactionReport.satisfaction.overallSatisfaction}%` }}
-            />
-          </div>
+      {satisfactionReport && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-2xl font-bold mb-4">😊 Satisfação da População</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-gray-600">Produtividade:</p>
-              <p className="font-bold">{(satisfactionReport.effects.productivity * 100).toFixed(0)}%</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            {Object.entries(satisfactionReport.satisfaction)
+              .filter(([key]) => ['critical', 'important', 'comfort', 'health'].includes(key))
+              .map(([category, data]) => {
+                const labels = {
+                  critical: { name: 'Críticos', icon: '💀', color: 'red' },
+                  important: { name: 'Importantes', icon: '⚠️', color: 'orange' },
+                  comfort: { name: 'Conforto', icon: '😊', color: 'yellow' },
+                  health: { name: 'Saúde', icon: '💊', color: 'blue' }
+                };
+                const label = labels[category];
+
+                return (
+                  <div key={category} className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{label.icon}</span>
+                      <span className="font-bold">{label.name}</span>
+                    </div>
+                    <p className="text-3xl font-bold text-gray-700">
+                      {data.percentage.toFixed(0)}%
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{ width: `${data.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          <div className={`p-6 rounded-lg border-2 ${
+            satisfactionReport.satisfaction.overallSatisfaction >= 80 ? 'bg-green-50 border-green-500' :
+            satisfactionReport.satisfaction.overallSatisfaction >= 60 ? 'bg-blue-50 border-blue-500' :
+            satisfactionReport.satisfaction.overallSatisfaction >= 40 ? 'bg-yellow-50 border-yellow-500' :
+            'bg-red-50 border-red-500'
+          }`}>
+            <h4 className="text-xl font-bold mb-2">Satisfação Geral</h4>
+            <p className="text-4xl font-bold mb-2">
+              {satisfactionReport.satisfaction.overallSatisfaction}%
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+              <div
+                className={`h-4 rounded-full transition-all ${
+                  satisfactionReport.satisfaction.overallSatisfaction >= 80 ? 'bg-green-600' :
+                  satisfactionReport.satisfaction.overallSatisfaction >= 60 ? 'bg-blue-600' :
+                  satisfactionReport.satisfaction.overallSatisfaction >= 40 ? 'bg-yellow-600' :
+                  'bg-red-600'
+                }`}
+                style={{ width: `${satisfactionReport.satisfaction.overallSatisfaction}%` }}
+              />
             </div>
-            <div>
-              <p className="text-gray-600">Arrecadação:</p>
-              <p className="font-bold">{(satisfactionReport.effects.taxCompliance * 100).toFixed(0)}%</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Crescimento:</p>
-              <p className="font-bold">{(satisfactionReport.effects.growth * 100).toFixed(0)}%</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-gray-600">Produtividade:</p>
+                <p className="font-bold">{(satisfactionReport.effects.productivity * 100).toFixed(0)}%</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Arrecadação:</p>
+                <p className="font-bold">{(satisfactionReport.effects.taxCompliance * 100).toFixed(0)}%</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Crescimento:</p>
+                <p className="font-bold">{(satisfactionReport.effects.growth * 100).toFixed(0)}%</p>
+              </div>
             </div>
           </div>
+
+          {/* Alertas Críticos */}
+          {satisfactionReport.satisfaction.criticalShortages && satisfactionReport.satisfaction.criticalShortages.length > 0 && (
+            <div className="mt-4 bg-red-50 border-2 border-red-500 p-4 rounded-lg">
+              <h4 className="font-bold text-red-800 mb-2">🚨 Escassez Crítica!</h4>
+              <ul className="space-y-1">
+                {satisfactionReport.satisfaction.criticalShortages.map((shortage, idx) => (
+                  <li key={idx} className="text-red-700">
+                    • <strong>{shortage.item}</strong>: 
+                    Déficit de {shortage.deficit} unidades ({shortage.fulfillment} atendido)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-
-        {/* Alertas Críticos */}
-        {satisfactionReport.satisfaction.criticalShortages.length > 0 && (
-          <div className="mt-4 bg-red-50 border-2 border-red-500 p-4 rounded-lg">
-            <h4 className="font-bold text-red-800 mb-2">🚨 Escassez Crítica!</h4>
-            <ul className="space-y-1">
-              {satisfactionReport.satisfaction.criticalShortages.map((shortage, idx) => (
-                <li key={idx} className="text-red-700">
-                  • <strong>{populationNeeds.getResourceInfo(shortage.item).name}</strong>: 
-                  Déficit de {shortage.deficit} unidades ({shortage.fulfillment} atendido)
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Recomendações */}
-        {satisfactionReport.recommendations.length > 0 && (
-          <div className="mt-4 bg-blue-50 border-2 border-blue-500 p-4 rounded-lg">
-            <h4 className="font-bold text-blue-800 mb-2">💡 Recomendações</h4>
-            <ul className="space-y-2">
-              {satisfactionReport.recommendations.slice(0, 5).map((rec, idx) => (
-                <li key={idx} className="text-blue-700 text-sm">
-                  <span className={`font-bold ${
-                    rec.priority === 'URGENTE' ? 'text-red-600' :
-                    rec.priority === 'ALTA' ? 'text-orange-600' :
-                    rec.priority === 'MÉDIA' ? 'text-yellow-600' :
-                    'text-blue-600'
-                  }`}>[{rec.priority}]</span> {rec.message}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Negócios por Produto */}
       {Object.keys(businessesByProduct).length > 0 ? (
@@ -249,7 +261,7 @@ const CitizensTab = ({
           
           <div className="space-y-4">
             {Object.entries(businessesByProduct).map(([product, businesses]) => {
-              const productInfo = products[product];
+              const productInfo = getProductInfo(product);
               const totalProduction = businesses.reduce((sum, b) => sum + b.production, 0);
               const totalEmployees = businesses.reduce((sum, b) => sum + b.employees, 0);
               const totalTax = businesses.reduce((sum, b) => sum + b.monthlyTax, 0);
@@ -289,7 +301,7 @@ const CitizensTab = ({
                   <div className="space-y-2">
                     {businesses.map(business => {
                       const owner = citizenSystem.citizens.find(c => c.id === business.ownerId);
-                      const expansion = business.expandable ? 
+                      const expansion = business.expandable && citizenSystem.checkBusinessExpansion ? 
                         citizenSystem.checkBusinessExpansion(business, nation) : null;
 
                       return (
@@ -299,7 +311,6 @@ const CitizensTab = ({
                               <p className="font-bold">{business.name}</p>
                               <p className="text-sm text-gray-600">
                                 Proprietário: {owner?.name || 'Desconhecido'} | 
-                                Tamanho: {business.size} | 
                                 {business.monthsActive} meses ativo
                               </p>
                             </div>
@@ -314,13 +325,13 @@ const CitizensTab = ({
                               )}
                               <button
                                 onClick={() => {
-                                  if (confirm(`Tem certeza que deseja destruir ${business.name}? ${business.employees} empregos serão perdidos.`)) {
+                                  if (confirm(`Tem certeza que deseja destruir ${business.name}?`)) {
                                     onDestroyBusiness(business.id);
                                   }
                                 }}
                                 className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
                               >
-                                🗑️ Destruir
+                                🗑️
                               </button>
                             </div>
                           </div>
@@ -339,7 +350,7 @@ const CitizensTab = ({
                               <p className="font-bold text-green-600">R$ {business.monthlyTax.toLocaleString()}</p>
                             </div>
                             <div>
-                              <p className="text-gray-600">Lucro Dono:</p>
+                              <p className="text-gray-600">Lucro:</p>
                               <p className="font-bold text-blue-600">R$ {business.monthlyProfit.toLocaleString()}</p>
                             </div>
                           </div>
@@ -347,19 +358,16 @@ const CitizensTab = ({
                           {expansion && (
                             <div className="mt-2 pt-2 border-t bg-blue-50 p-2 rounded">
                               <p className="text-sm font-bold text-blue-800 mb-1">
-                                🚀 Oportunidade de Expansão Disponível!
+                                🚀 Expansão Disponível!
                               </p>
-                              <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="text-xs grid grid-cols-2 gap-2">
                                 <div>
-                                  <p className="text-gray-600">Novo tamanho: <strong>{expansion.nextSize}</strong></p>
-                                  <p className="text-gray-600">+{expansion.benefits.additionalEmployees} empregos</p>
-                                  <p className="text-gray-600">+{expansion.benefits.additionalProduction} produção</p>
+                                  <p>+{expansion.newEmployees} funcionários</p>
+                                  <p>+{expansion.additionalProduction} produção</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-600">Custos:</p>
-                                  <p className="text-gray-600">{expansion.costs.land} terra</p>
-                                  <p className="text-gray-600">{expansion.costs.water} água</p>
-                                  <p className="text-gray-600">R$ {expansion.costs.money.toLocaleString()}</p>
+                                  <p>Custo: R$ {expansion.expansionCost.toLocaleString()}</p>
+                                  <p>+R$ {expansion.additionalTax.toLocaleString()}/mês impostos</p>
                                 </div>
                               </div>
                             </div>
@@ -380,17 +388,15 @@ const CitizensTab = ({
           <p className="text-gray-600 mb-4">
             {nation.educationLevel === 'none' 
               ? 'Melhore a educação para permitir que cidadãos criem seus próprios negócios.'
-              : 'Cidadãos começarão a criar negócios automaticamente quando houver demanda não atendida pelo governo (15% de chance por mês).'
+              : 'Cidadãos começarão a criar negócios automaticamente (30% chance por mês).'
             }
           </p>
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 text-left max-w-2xl mx-auto">
-            <p className="text-sm font-bold text-gray-700 mb-2">📊 Condições para criar negócios:</p>
+            <p className="text-sm font-bold text-gray-700 mb-2">📊 Condições:</p>
             <ul className="text-sm text-gray-700 space-y-1">
-              <li>✓ Nível de educação: {nation.educationLevel !== 'none' ? '✅ OK' : '❌ Necessário'}</li>
-              <li>✓ Terra disponível: {(nation.resources?.land || 0).toLocaleString()} unidades</li>
-              <li>✓ Água disponível: {(nation.resources?.water || 0).toLocaleString()} unidades</li>
-              <li>✓ Déficit de recursos: Verifique na aba Recursos</li>
-              <li>✓ Chance por turno: 15%</li>
+              <li>✓ Educação: {nation.educationLevel !== 'none' ? '✅' : '❌'}</li>
+              <li>✓ Chance: 30% por turno</li>
+              <li>✓ 100% Privado (sem subsídio)</li>
             </ul>
           </div>
         </div>
@@ -398,17 +404,15 @@ const CitizensTab = ({
 
       {/* Dicas */}
       <div className="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded">
-        <h3 className="font-bold text-lg mb-2">💡 Como Funciona o Sistema de Cidadãos</h3>
+        <h3 className="font-bold text-lg mb-2">💡 Sistema de Cidadãos</h3>
         <ul className="space-y-2 text-sm text-gray-700">
-          <li>• <strong>Educação Básica:</strong> Cidadãos podem criar pequenas plantações (2-5 funcionários, 30-80 produção)</li>
-          <li>• <strong>Educação Intermediária:</strong> Negócios médios (5-13 funcionários, 80-180 produção)</li>
-          <li>• <strong>Educação Avançada:</strong> Grandes fazendas (15-40 funcionários, 180-380 produção)</li>
-          <li>• <strong>Educação Superior:</strong> Agronegócio corporativo (50-130 funcionários, 380-780 produção)</li>
-          <li>• <strong>Criação Automática:</strong> 15% de chance por mês quando há demanda não atendida</li>
-          <li>• <strong>Expansão:</strong> Após 6 meses, negócios podem expandir se o proprietário tiver educação suficiente</li>
-          <li>• <strong>Benefícios:</strong> Gera empregos, paga impostos (15% da receita) e atende necessidades da população</li>
-          <li>• <strong>Recursos:</strong> Cidadãos usam terra e água, governo subsidia 50% do custo</li>
-          <li>• <strong>Destruição:</strong> Você pode destruir negócios, mas perderá empregos e receita de impostos</li>
+          <li>• <strong>Básico:</strong> até 10 funcionários</li>
+          <li>• <strong>Intermediário:</strong> até 100 funcionários</li>
+          <li>• <strong>Avançado:</strong> até 1.000 funcionários</li>
+          <li>• <strong>Superior:</strong> até 10.000 funcionários</li>
+          <li>• <strong>30% chance</strong> de criar negócio por mês</li>
+          <li>• <strong>100% privado</strong> - governo não subsidia</li>
+          <li>• Expansão após 6 meses</li>
         </ul>
       </div>
     </div>

@@ -1,11 +1,155 @@
-// src/views/MinistriesTab.jsx - ATUALIZADO
+// src/views/MinistriesTab.jsx - COM BENFEITORIAS COLAPSÁVEIS
 
 import React, { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { MINISTRY_TYPES } from '../data/ministryTypes';
 import { GAME_CONFIG } from '../data/gameConfig';
-import { groupFacilities } from '../utils/facilityUtils';
-import GroupedFacilityCard from '../components/GroupedFacilityCard';
+
+const CollapsibleFacilityGroup = ({ groupName, facilities, onUpdateJobSalary }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
+  const [newSalary, setNewSalary] = useState('');
+
+  const totalVacancies = facilities.reduce((sum, f) => 
+    sum + f.jobs.reduce((s, j) => s + j.count, 0), 0
+  );
+  const filledVacancies = facilities.reduce((sum, f) => 
+    sum + f.jobs.reduce((s, j) => s + (j.filled || 0), 0), 0
+  );
+  const fillRate = totalVacancies > 0 ? (filledVacancies / totalVacancies) * 100 : 0;
+
+  const handleUpdateSalary = (facilityId, role) => {
+    const salary = parseInt(newSalary);
+    if (!isNaN(salary)) {
+      onUpdateJobSalary(facilityId, role, salary);
+      setEditingJob(null);
+      setNewSalary('');
+    }
+  };
+
+  return (
+    <div className="border-2 border-blue-300 rounded-lg overflow-hidden mb-3">
+      {/* Header Colapsável */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 flex items-center justify-between hover:from-blue-600 hover:to-blue-700 transition"
+      >
+        <div className="flex items-center gap-3">
+          {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+          <div className="text-left">
+            <h4 className="font-bold text-lg">{groupName} ({facilities.length} unidade{facilities.length > 1 ? 's' : ''})</h4>
+            <p className="text-sm text-blue-100">
+              {filledVacancies}/{totalVacancies} vagas preenchidas ({fillRate.toFixed(0)}%)
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-medium">Clique para {isOpen ? 'ocultar' : 'ver'} detalhes</p>
+        </div>
+      </button>
+
+      {/* Conteúdo Colapsável */}
+      {isOpen && (
+        <div className="bg-white p-4 space-y-3">
+          {facilities.map((facility, index) => (
+            <div key={facility.id} className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
+              <h5 className="font-bold mb-3">
+                Unidade #{index + 1}
+                {facility.appliedTechs && facility.appliedTechs.length > 0 && (
+                  <span className="ml-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full">
+                    ⚡ {facility.appliedTechs.length} Tech
+                  </span>
+                )}
+              </h5>
+              
+              {/* Jobs */}
+              <div className="space-y-2">
+                {facility.jobs.map(job => (
+                  <div key={job.role} className="bg-white p-3 rounded border-l-2 border-green-500">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium">{job.role}</p>
+                        <p className="text-sm text-gray-500">
+                          {job.filled || 0}/{job.count} vagas
+                        </p>
+                      </div>
+                      
+                      <div className="text-right">
+                        {editingJob === `${facility.id}-${job.role}` ? (
+                          <div className="flex gap-1">
+                            <input
+                              type="number"
+                              value={newSalary}
+                              onChange={(e) => setNewSalary(e.target.value)}
+                              className="w-24 px-2 py-1 border rounded text-sm"
+                              min={job.minSalary}
+                              placeholder={job.currentSalary || job.minSalary}
+                            />
+                            <button
+                              onClick={() => handleUpdateSalary(facility.id, job.role)}
+                              className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingJob(null);
+                                setNewSalary('');
+                              }}
+                              className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
+                            >
+                              ✗
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-sm font-medium">
+                              R$ {(job.currentSalary || job.minSalary).toLocaleString()}/mês
+                            </p>
+                            <button
+                              onClick={() => {
+                                setEditingJob(`${facility.id}-${job.role}`);
+                                setNewSalary((job.currentSalary || job.minSalary).toString());
+                              }}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              ✏️ Editar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{ width: `${job.count > 0 ? ((job.filled || 0) / job.count) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Benefícios */}
+              {facility.benefits && Object.keys(facility.benefits).length > 0 && (
+                <div className="mt-3 pt-3 border-t">
+                  <p className="text-xs font-medium text-gray-600 mb-1">Benefícios:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {Object.entries(facility.benefits).map(([key, value]) => (
+                      <span key={key} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        {key}: +{value}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const MinistriesTab = ({ 
   nation, 
@@ -88,7 +232,15 @@ const MinistriesTab = ({
         if (selectedMinistry !== ministry.id) return null;
 
         const ministryFacilities = nation.facilities.filter(f => f.ministryId === ministry.id);
-        const groupedFacilities = groupFacilities(ministryFacilities);
+        
+        // Agrupar por nome
+        const facilityGroups = {};
+        ministryFacilities.forEach(facility => {
+          if (!facilityGroups[facility.name]) {
+            facilityGroups[facility.name] = [];
+          }
+          facilityGroups[facility.name].push(facility);
+        });
 
         return (
           <div key={ministry.id} className="bg-white p-6 rounded-lg shadow">
@@ -170,38 +322,25 @@ const MinistriesTab = ({
                       className="bg-blue-500 text-white p-4 rounded hover:bg-blue-600 text-left transition transform hover:scale-105"
                     >
                       <div className="font-bold text-lg mb-1">{fac.name}</div>
-                      <div className="text-sm mb-2">💰 Custo: R$ {fac.cost.toLocaleString()}</div>
+                      <div className="text-sm mb-2">💰 R$ {fac.cost.toLocaleString()}</div>
                       <div className="text-xs opacity-90">
-                        👥 {fac.jobs.length} tipos de cargo | {fac.jobs.reduce((s, j) => s + j.count, 0)} vagas totais
+                        👥 {fac.jobs.reduce((s, j) => s + j.count, 0)} vagas
                       </div>
-                      {fac.benefits && (
-                        <div className="text-xs mt-2 pt-2 border-t border-blue-400">
-                          {Object.entries(fac.benefits).map(([key, val]) => (
-                            <span key={key} className="mr-2">
-                              {key}: +{val}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {fac.resourceProduction && (
-                        <div className="text-xs mt-1 text-green-200">
-                          📦 Produz: {Object.keys(fac.resourceProduction).join(', ')}
-                        </div>
-                      )}
                     </button>
                   ))}
                 </div>
 
-                {groupedFacilities.length > 0 && (
+                {Object.keys(facilityGroups).length > 0 && (
                   <div>
                     <h4 className="font-bold mb-3 text-lg">
-                      Benfeitorias Construídas ({ministryFacilities.length} unidades, {groupedFacilities.length} tipos):
+                      Benfeitorias Construídas ({ministryFacilities.length} unidades):
                     </h4>
-                    <div className="space-y-4">
-                      {groupedFacilities.map(group => (
-                        <GroupedFacilityCard
-                          key={group.name}
-                          group={group}
+                    <div className="space-y-3">
+                      {Object.entries(facilityGroups).map(([name, facilities]) => (
+                        <CollapsibleFacilityGroup
+                          key={name}
+                          groupName={name}
+                          facilities={facilities}
                           onUpdateJobSalary={onUpdateJobSalary}
                         />
                       ))}
@@ -211,7 +350,7 @@ const MinistriesTab = ({
 
                 {ministryFacilities.length === 0 && (
                   <div className="bg-gray-50 p-4 rounded text-center text-gray-500">
-                    Nenhuma benfeitoria construída ainda. Construa sua primeira benfeitoria acima!
+                    Nenhuma benfeitoria construída ainda.
                   </div>
                 )}
               </div>
@@ -227,12 +366,7 @@ const MinistriesTab = ({
             <div>
               <h3 className="font-bold text-lg">Nenhum Ministério Criado</h3>
               <p className="text-gray-700">
-                Crie ministérios para começar a desenvolver sua nação. 
-                Cada ministério permite construir benfeitorias específicas.
-              </p>
-              <p className="text-sm text-gray-600 mt-2">
-                💡 Agora disponíveis: Educação, Saúde, Defesa, Agricultura, Indústria, Minas e Energia, 
-                Tecnologia, Infraestrutura, Justiça e Cultura!
+                Crie ministérios para começar a desenvolver sua nação.
               </p>
             </div>
           </div>
