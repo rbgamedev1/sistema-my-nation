@@ -161,13 +161,14 @@ export class CitizenSystem {
       return null;
     }
 
-    // Chance base de criar negócio: 15% por mês (aumentado de 5%)
+    // Chance base de criar negócio: 30% por mês
     const roll = Math.random();
     console.log('[CitizenSystem] Tentando criar negócio. Roll:', roll);
     
-    if (roll > 0.15) {
-      console.log('[CitizenSystem] Chance não passou (precisa <= 0.15)');
+    if (roll > 0.3) {
+      console.log('[CitizenSystem] Chance não passou');
       return null;
+    
     }
 
     // Calcular demanda
