@@ -58,13 +58,8 @@ export const GAME_CONFIG = {
     RESEARCH_COST_MULTIPLIER: 1.0
   },
   
+  // ATUALIZADO: Removido custos, apenas requisitos de escolas
   EDUCATION: {
-    COSTS: {
-      basic: 50000,
-      intermediate: 200000,
-      advanced: 800000,
-      superior: 3000000
-    },
     SCHOOL_REQUIREMENTS: {
       basic: 1,
       intermediate: 3,

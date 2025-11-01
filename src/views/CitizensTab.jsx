@@ -1,4 +1,4 @@
-// src/views/CitizensTab.jsx - CORRIGIDO (Sem Crash)
+// src/views/CitizensTab.jsx - CORRIGIDO (Sem botão de melhorar educação)
 
 import React, { useState } from 'react';
 import { Users, Briefcase, TrendingUp, Building, AlertCircle } from 'lucide-react';
@@ -7,7 +7,6 @@ const CitizensTab = ({
   nation, 
   citizenSystem, 
   populationNeeds,
-  onUpgradeEducation,
   onApproveExpansion,
   onDestroyBusiness
 }) => {
@@ -42,7 +41,7 @@ const CitizensTab = ({
     });
   }
 
-  // Calcular relatório de satisfação (com fallback se populationNeeds não existir)
+  // Calcular relatório de satisfação
   let satisfactionReport = null;
   if (populationNeeds) {
     try {
@@ -89,41 +88,44 @@ const CitizensTab = ({
 
   return (
     <div className="space-y-6">
-      {/* Header: Nível de Educação */}
+      {/* Header: Nível de Educação - SEM BOTÃO */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-lg shadow-lg">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">🎓 Sistema de Cidadãos Autônomos</h2>
-            <p className="text-indigo-100 mb-4">
-              Cidadãos educados criam seus próprios negócios e ajudam a economia crescer
-            </p>
+        <div>
+          <h2 className="text-3xl font-bold mb-2">🎓 Sistema de Cidadãos Autônomos</h2>
+          <p className="text-indigo-100 mb-4">
+            Cidadãos educados criam seus próprios negócios e ajudam a economia crescer
+          </p>
+          
+          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-lg">
+            <p className="text-sm mb-2">Nível de Educação Atual:</p>
+            <p className="text-2xl font-bold">{
+              nation.educationLevel === 'none' ? 'Nenhum' :
+              nation.educationLevel === 'basic' ? 'Básico' :
+              nation.educationLevel === 'intermediate' ? 'Intermediário' :
+              nation.educationLevel === 'advanced' ? 'Avançado' : 'Superior'
+            }</p>
             
-            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-lg">
-              <p className="text-sm mb-2">Nível de Educação Atual:</p>
-              <p className="text-2xl font-bold">{
-                nation.educationLevel === 'none' ? 'Nenhum' :
-                nation.educationLevel === 'basic' ? 'Básico' :
-                nation.educationLevel === 'intermediate' ? 'Intermediário' :
-                nation.educationLevel === 'advanced' ? 'Avançado' : 'Superior'
-              }</p>
-              
-              {currentEducation && currentEducation.canStartBusiness && (
-                <div className="mt-3 text-sm">
-                  <p>✓ Cidadãos podem criar negócios</p>
-                  <p>✓ Capacidade máxima: {currentEducation.maxEmployees} funcionários</p>
-                </div>
-              )}
-            </div>
-          </div>
+            {currentEducation && currentEducation.canStartBusiness && (
+              <div className="mt-3 text-sm">
+                <p>✓ Cidadãos podem criar negócios</p>
+                <p>✓ Capacidade máxima: {currentEducation.maxEmployees} funcionários</p>
+              </div>
+            )}
 
-          {nation.educationLevel !== 'superior' && (
-            <button
-              onClick={onUpgradeEducation}
-              className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold hover:bg-indigo-50 transition"
-            >
-              📚 Melhorar Educação
-            </button>
-          )}
+            {nation.educationLevel === 'none' && (
+              <div className="mt-3 bg-yellow-500/20 p-3 rounded">
+                <p className="text-sm font-bold">⚠️ Como melhorar a educação:</p>
+                <p className="text-sm mt-1">Construa escolas, creches ou universidades no Ministério de Educação.</p>
+                <p className="text-sm mt-1">A educação melhora automaticamente baseado no número de instituições:</p>
+                <ul className="text-xs mt-2 space-y-1">
+                  <li>• 1 instituição = Básico</li>
+                  <li>• 3 instituições = Intermediário</li>
+                  <li>• 5 instituições = Avançado</li>
+                  <li>• 10 instituições = Superior</li>
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -276,6 +278,7 @@ const CitizensTab = ({
                         <p className="text-sm text-gray-600">{businesses.length} negócio(s) ativo(s)</p>
                       </div>
                     </div>
+                    
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Produção Total</p>
                       <p className="text-2xl font-bold text-green-600">{totalProduction.toLocaleString()}</p>
@@ -387,16 +390,17 @@ const CitizensTab = ({
           <h3 className="text-xl font-bold mb-2">Nenhum Negócio Autônomo Ainda</h3>
           <p className="text-gray-600 mb-4">
             {nation.educationLevel === 'none' 
-              ? 'Melhore a educação para permitir que cidadãos criem seus próprios negócios.'
+              ? 'Construa escolas, creches ou universidades para melhorar a educação.'
               : 'Cidadãos começarão a criar negócios automaticamente (30% chance por mês).'
             }
           </p>
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 text-left max-w-2xl mx-auto">
-            <p className="text-sm font-bold text-gray-700 mb-2">📊 Condições:</p>
+            <p className="text-sm font-bold text-gray-700 mb-2">📊 Como funciona:</p>
             <ul className="text-sm text-gray-700 space-y-1">
-              <li>✓ Educação: {nation.educationLevel !== 'none' ? '✅' : '❌'}</li>
-              <li>✓ Chance: 30% por turno</li>
-              <li>✓ 100% Privado (sem subsídio)</li>
+              <li>✓ Educação melhora automaticamente ao construir escolas</li>
+              <li>✓ Único requisito: Nível de educação adequado</li>
+              <li>✓ 30% chance por turno de criar negócio</li>
+              <li>✓ 100% Privado (cidadão investe seu próprio dinheiro)</li>
             </ul>
           </div>
         </div>
@@ -406,13 +410,14 @@ const CitizensTab = ({
       <div className="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded">
         <h3 className="font-bold text-lg mb-2">💡 Sistema de Cidadãos</h3>
         <ul className="space-y-2 text-sm text-gray-700">
-          <li>• <strong>Básico:</strong> até 10 funcionários</li>
-          <li>• <strong>Intermediário:</strong> até 100 funcionários</li>
-          <li>• <strong>Avançado:</strong> até 1.000 funcionários</li>
-          <li>• <strong>Superior:</strong> até 10.000 funcionários</li>
+          <li>• <strong>Básico (1 escola):</strong> até 10 funcionários</li>
+          <li>• <strong>Intermediário (3 escolas):</strong> até 100 funcionários</li>
+          <li>• <strong>Avançado (5 escolas):</strong> até 1.000 funcionários</li>
+          <li>• <strong>Superior (10 escolas):</strong> até 10.000 funcionários</li>
           <li>• <strong>30% chance</strong> de criar negócio por mês</li>
-          <li>• <strong>100% privado</strong> - governo não subsidia</li>
-          <li>• Expansão após 6 meses</li>
+          <li>• <strong>100% privado</strong> - cidadão usa sua própria riqueza</li>
+          <li>• <strong>Único requisito:</strong> Nível de educação (melhorado automaticamente)</li>
+          <li>• Expansão após 6 meses de atividade</li>
         </ul>
       </div>
     </div>

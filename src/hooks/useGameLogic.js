@@ -1,4 +1,4 @@
-// src/hooks/useGameLogic.js - CORRIGIDO FINAL
+// src/hooks/useGameLogic.js - CORRIGIDO (Auto-upgrade educação)
 
 import { useState, useEffect } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -45,6 +45,23 @@ export const useGameLogic = () => {
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, 5000);
+  };
+
+  // NOVO: Função para verificar e atualizar automaticamente o nível de educação
+  const checkEducationUpgrade = (facilities) => {
+    const schools = facilities.filter(f => 
+      f.name.includes('Escola') || 
+      f.name.includes('Universidade') || 
+      f.name.includes('Creche')
+    ).length;
+
+    const requirements = GAME_CONFIG.EDUCATION.SCHOOL_REQUIREMENTS;
+
+    if (schools >= requirements.superior) return 'superior';
+    if (schools >= requirements.advanced) return 'advanced';
+    if (schools >= requirements.intermediate) return 'intermediate';
+    if (schools >= requirements.basic) return 'basic';
+    return 'none';
   };
 
   const startGame = (name, nationName) => {
@@ -223,6 +240,7 @@ export const useGameLogic = () => {
     );
   };
 
+  // ATUALIZADO: Verificar upgrade automático de educação após construção
   const createFacility = (ministryId, facilityData) => {
     if (!nation) return;
 
@@ -267,13 +285,45 @@ export const useGameLogic = () => {
       nation.technologies?.researched || []
     );
 
+    const updatedFacilities = [...nation.facilities, updatedFacility];
+    
+    // NOVO: Verificar upgrade automático de educação
+    const oldEducationLevel = nation.educationLevel;
+    const newEducationLevel = checkEducationUpgrade(updatedFacilities);
+
     setNation(prev => ({
       ...prev,
-      facilities: [...prev.facilities, updatedFacility],
-      treasury: prev.treasury - facilityData.cost
+      facilities: updatedFacilities,
+      treasury: prev.treasury - facilityData.cost,
+      educationLevel: newEducationLevel
     }));
 
     addNotification(`🏗️ ${facilityData.name} construída com sucesso!`, 'success');
+
+    // Notificar se houve upgrade de educação
+    if (newEducationLevel !== oldEducationLevel && newEducationLevel !== 'none') {
+      const levelNames = {
+        basic: 'Básica',
+        intermediate: 'Intermediária',
+        advanced: 'Avançada',
+        superior: 'Superior'
+      };
+      
+      const educationCaps = citizenSystem?.getEducationLevels();
+      const caps = educationCaps?.[newEducationLevel];
+      
+      addNotification(
+        `🎓 Educação melhorada automaticamente para ${levelNames[newEducationLevel]}!`,
+        'success'
+      );
+      
+      if (caps && caps.canStartBusiness) {
+        addNotification(
+          `💼 Cidadãos agora podem criar negócios com até ${caps.maxEmployees} funcionários!`,
+          'info'
+        );
+      }
+    }
   };
 
   const updateJobSalary = (facilityId, role, newSalary) => {
@@ -447,67 +497,6 @@ export const useGameLogic = () => {
       `💰 Exportação concluída! ${amount} unidades de ${resource} vendidas por R$ ${totalValue.toLocaleString()}`,
       'success'
     );
-  };
-
-  const upgradeEducation = () => {
-    if (!nation) return;
-
-    const educationLevels = ["none", "basic", "intermediate", "advanced", "superior"];
-    const currentIndex = educationLevels.indexOf(nation.educationLevel);
-    
-    if (currentIndex >= educationLevels.length - 1) {
-      addNotification('🎓 Educação já está no nível máximo!', 'info');
-      return;
-    }
-
-    const costs = GAME_CONFIG.EDUCATION.COSTS;
-    const nextLevel = educationLevels[currentIndex + 1];
-    const cost = costs[nextLevel];
-
-    if (nation.treasury < cost) {
-      addNotification(`💰 Tesouro insuficiente! Necessário R$ ${cost.toLocaleString()}`, 'error');
-      return;
-    }
-
-    const schools = nation.facilities.filter(f => 
-      f.name.includes('Escola') || f.name.includes('Universidade')
-    ).length;
-
-    const requiredSchools = GAME_CONFIG.EDUCATION.SCHOOL_REQUIREMENTS;
-
-    if (schools < requiredSchools[nextLevel]) {
-      addNotification(
-        `🏫 Construa pelo menos ${requiredSchools[nextLevel]} escolas/universidades antes de melhorar a educação!`,
-        'warning'
-      );
-      return;
-    }
-
-    setNation(prev => ({
-      ...prev,
-      treasury: prev.treasury - cost,
-      educationLevel: nextLevel
-    }));
-
-    const levelNames = {
-      basic: 'Básica',
-      intermediate: 'Intermediária',
-      advanced: 'Avançada',
-      superior: 'Superior'
-    };
-
-    addNotification(
-      `🎓 Educação melhorada para ${levelNames[nextLevel]}! Cidadãos agora podem criar negócios maiores!`,
-      'success'
-    );
-
-    if (citizenSystem) {
-      const capabilities = citizenSystem.getEducationLevels()[nextLevel];
-      addNotification(
-        `💼 Novos tipos de negócio desbloqueados! Capacidade: ${capabilities.maxEmployees} funcionários`,
-        'info'
-      );
-    }
   };
 
   const approveBusinessExpansion = (businessId) => {
@@ -854,7 +843,6 @@ export const useGameLogic = () => {
     completeResearch,
     addNotification,
     exportResource,
-    upgradeEducation,
     approveBusinessExpansion,
     destroyCitizenBusiness,
     getAutonomousProduction,
