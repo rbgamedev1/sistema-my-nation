@@ -1,4 +1,4 @@
-// src/views/CitizensTab.jsx - CORRIGIDO (Sem botão de melhorar educação)
+// src/views/CitizensTab.jsx - CORRIGIDO
 
 import React, { useState } from 'react';
 import { Users, Briefcase, TrendingUp, Building, AlertCircle } from 'lucide-react';
@@ -33,11 +33,46 @@ const CitizensTab = ({
   const educationLevels = citizenSystem.getEducationLevels();
   const currentEducation = educationLevels[nation.educationLevel];
 
-  // Calcular produção autônoma
+  // CORRIGIDO: Calcular produção autônoma
   const autonomousProduction = {};
   if (citizenSystem.autonomousBusinesses) {
     citizenSystem.autonomousBusinesses.forEach(b => {
       autonomousProduction[b.product] = (autonomousProduction[b.product] || 0) + b.production;
+    });
+  }
+
+  // CORRIGIDO: Combinar TODOS os recursos disponíveis (produção + estoque + território)
+  const allAvailableResources = {};
+  
+  // Recursos do território
+  if (nation.territory?.resources) {
+    Object.entries(nation.territory.resources).forEach(([resource, amount]) => {
+      allAvailableResources[resource] = (allAvailableResources[resource] || 0) + amount;
+    });
+  }
+  
+  // Recursos em estoque
+  if (nation.resourceStorage) {
+    Object.entries(nation.resourceStorage).forEach(([resource, amount]) => {
+      allAvailableResources[resource] = (allAvailableResources[resource] || 0) + amount;
+    });
+  }
+  
+  // Produção das benfeitorias
+  if (nation.facilities) {
+    nation.facilities.forEach(facility => {
+      if (facility.resourceProduction) {
+        Object.entries(facility.resourceProduction).forEach(([resource, amount]) => {
+          allAvailableResources[resource] = (allAvailableResources[resource] || 0) + amount;
+        });
+      }
+    });
+  }
+  
+  // Produção do nation.production
+  if (nation.production) {
+    Object.entries(nation.production).forEach(([resource, amount]) => {
+      allAvailableResources[resource] = (allAvailableResources[resource] || 0) + amount;
     });
   }
 
@@ -47,7 +82,7 @@ const CitizensTab = ({
     try {
       satisfactionReport = populationNeeds.generateReport(
         nation.population,
-        nation.resources || {},
+        allAvailableResources, // CORRIGIDO: Usar todos os recursos
         autonomousProduction,
         nation.educationLevel,
         nation.economicStatus || 'medium'
@@ -86,9 +121,17 @@ const CitizensTab = ({
     return { name: product, icon: '📦', basePrice: 50 };
   };
 
+  // Mapeamento de nomes de categorias
+  const categoryNames = {
+    critical: 'Críticos',
+    important: 'Importantes',
+    comfort: 'Conforto',
+    health: 'Saúde'
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header: Nível de Educação - SEM BOTÃO */}
+      {/* Header: Nível de Educação */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-lg shadow-lg">
         <div>
           <h2 className="text-3xl font-bold mb-2">🎓 Sistema de Cidadãos Autônomos</h2>

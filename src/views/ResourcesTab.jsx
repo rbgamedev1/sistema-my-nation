@@ -1,4 +1,4 @@
-// src/views/ResourcesTab.jsx - CORRIGIDO COM RECURSOS EM PORTUGUÊS
+// src/views/ResourcesTab.jsx - TRADUZIDO PARA PORTUGUÊS
 
 import React from 'react';
 import { calculateResourceBalance } from '../utils/calculations';
