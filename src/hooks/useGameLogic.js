@@ -138,8 +138,14 @@ export const useGameLogic = () => {
   const createMinistry = (type) => {
     if (!nation) return;
 
-    if (nation.treasury < GAME_CONFIG.MINISTRY_COST) {
-      addNotification('Tesouro insuficiente para criar ministério!', 'error');
+    const DEFAULT_MINISTER_SALARY = 10000;
+    const totalCost = GAME_CONFIG.MINISTRY_COST + DEFAULT_MINISTER_SALARY;
+
+    if (nation.treasury < totalCost) {
+      addNotification(
+        `Tesouro insuficiente! Necessário R$ ${totalCost.toLocaleString()} (ministério + salário do ministro)`,
+        'error'
+      );
       return;
     }
 
@@ -158,7 +164,10 @@ export const useGameLogic = () => {
       id: Date.now(),
       type,
       ...ministryData,
-      minister: null
+      minister: {
+        name: `Ministro ${ministryData.name}`,
+        salary: DEFAULT_MINISTER_SALARY
+      }
     };
 
     setNation(prev => ({
@@ -167,7 +176,10 @@ export const useGameLogic = () => {
       treasury: prev.treasury - GAME_CONFIG.MINISTRY_COST
     }));
 
-    addNotification(`✅ Ministério de ${ministryData.name} criado com sucesso!`, 'success');
+    addNotification(
+      `✅ Ministério de ${ministryData.name} criado com sucesso! Ministro contratado automaticamente.`,
+      'success'
+    );
   };
 
   const hireMinister = (ministryId, salary = 5000) => {
@@ -600,9 +612,37 @@ export const useGameLogic = () => {
     const { balance: resourceBalance } = calculateResourceBalance(nation, citizenSystem);
     const updatedResourceStorage = { ...(nation.resourceStorage || {}) };
     
+    // CORRIGIDO: Apenas recursos do governo vão para estoque
     Object.entries(resourceBalance).forEach(([resource, amount]) => {
       if (amount > 0) {
-        updatedResourceStorage[resource] = (updatedResourceStorage[resource] || 0) + (amount * 0.5);
+        // Calcular produção do governo (sem cidadãos)
+        let govProduction = 0;
+        
+        // Produção do território
+        if (nation.territory?.resources?.[resource]) {
+          govProduction += nation.territory.resources[resource];
+        }
+        
+        // Produção das benfeitorias do governo
+        nation.facilities.forEach(facility => {
+          if (facility.resourceProduction?.[resource]) {
+            govProduction += facility.resourceProduction[resource];
+          }
+        });
+        
+        // Consumo total
+        const consumption = calculatePopulationResourceConsumption(nation.population)[resource] || 0;
+        const infraConsumption = nation.facilities.reduce((sum, f) => {
+          return sum + (f.resourceConsumption?.[resource] || 0);
+        }, 0);
+        const totalConsumption = consumption + infraConsumption;
+        
+        // Apenas o excedente do governo vai para estoque (50%)
+        const govBalance = govProduction - totalConsumption;
+        if (govBalance > 0) {
+          updatedResourceStorage[resource] = (updatedResourceStorage[resource] || 0) + (govBalance * 0.5);
+          console.log(`[nextTurn] Recurso ${resource}: Produção gov=${govProduction}, Consumo=${totalConsumption}, Excedente gov=${govBalance}, Armazenado=${govBalance * 0.5}`);
+        }
       }
     });
 

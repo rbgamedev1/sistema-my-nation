@@ -1,4 +1,4 @@
-// src/views/MinistriesTab.jsx - COM BENFEITORIAS COLAPSÁVEIS
+// src/views/MinistriesTab.jsx - COM CONTRATAÇÃO AUTOMÁTICA DE MINISTRO
 
 import React, { useState } from 'react';
 import { AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
@@ -29,7 +29,6 @@ const CollapsibleFacilityGroup = ({ groupName, facilities, onUpdateJobSalary }) 
 
   return (
     <div className="border-2 border-blue-300 rounded-lg overflow-hidden mb-3">
-      {/* Header Colapsável */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 flex items-center justify-between hover:from-blue-600 hover:to-blue-700 transition"
@@ -48,7 +47,6 @@ const CollapsibleFacilityGroup = ({ groupName, facilities, onUpdateJobSalary }) 
         </div>
       </button>
 
-      {/* Conteúdo Colapsável */}
       {isOpen && (
         <div className="bg-white p-4 space-y-3">
           {facilities.map((facility, index) => (
@@ -62,7 +60,6 @@ const CollapsibleFacilityGroup = ({ groupName, facilities, onUpdateJobSalary }) 
                 )}
               </h5>
               
-              {/* Jobs */}
               <div className="space-y-2">
                 {facility.jobs.map(job => (
                   <div key={job.role} className="bg-white p-3 rounded border-l-2 border-green-500">
@@ -130,7 +127,6 @@ const CollapsibleFacilityGroup = ({ groupName, facilities, onUpdateJobSalary }) 
                 ))}
               </div>
 
-              {/* Benefícios */}
               {facility.benefits && Object.keys(facility.benefits).length > 0 && (
                 <div className="mt-3 pt-3 border-t">
                   <p className="text-xs font-medium text-gray-600 mb-1">Benefícios:</p>
@@ -183,6 +179,9 @@ const MinistriesTab = ({
           <h2 className="text-2xl font-bold mb-4">
             Criar Novo Ministério (Custo: R$ {GAME_CONFIG.MINISTRY_COST.toLocaleString()})
           </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            ⚡ O ministro será contratado automaticamente com salário de R$ 10.000
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {availableMinistries.map(type => {
               const exists = nation.ministries.find(m => m.type === type);
@@ -233,7 +232,6 @@ const MinistriesTab = ({
 
         const ministryFacilities = nation.facilities.filter(f => f.ministryId === ministry.id);
         
-        // Agrupar por nome
         const facilityGroups = {};
         ministryFacilities.forEach(facility => {
           if (!facilityGroups[facility.name]) {
@@ -247,7 +245,7 @@ const MinistriesTab = ({
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-xl font-bold">{ministry.icon} Ministério de {ministry.name}</h3>
-                {ministry.minister ? (
+                {ministry.minister && (
                   <div className="mt-2">
                     {editingMinister === ministry.id ? (
                       <div className="flex items-center gap-2">
@@ -292,69 +290,52 @@ const MinistriesTab = ({
                       </div>
                     )}
                   </div>
-                ) : (
-                  <p className="text-red-600 mt-2">✗ Sem ministro - Contrate um para desbloquear construções</p>
                 )}
               </div>
-              {!ministry.minister && (
-                <button
-                  onClick={() => {
-                    const salary = prompt('Salário mensal do ministro (mínimo R$ 5.000):', '10000');
-                    if (salary && !isNaN(salary)) {
-                      onHireMinister(ministry.id, parseInt(salary));
-                    }
-                  }}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
-                  Contratar Ministro
-                </button>
-              )}
             </div>
 
-            {ministry.minister && (
-              <div>
-                <h4 className="font-bold mb-3 text-lg">Construir Benfeitorias:</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-                  {ministry.facilities.map(fac => (
-                    <button
-                      key={fac.name}
-                      onClick={() => onCreateFacility(ministry.id, fac)}
-                      className="bg-blue-500 text-white p-4 rounded hover:bg-blue-600 text-left transition transform hover:scale-105"
-                    >
-                      <div className="font-bold text-lg mb-1">{fac.name}</div>
-                      <div className="text-sm mb-2">💰 R$ {fac.cost.toLocaleString()}</div>
-                      <div className="text-xs opacity-90">
-                        👥 {fac.jobs.reduce((s, j) => s + j.count, 0)} vagas
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {Object.keys(facilityGroups).length > 0 && (
-                  <div>
-                    <h4 className="font-bold mb-3 text-lg">
-                      Benfeitorias Construídas ({ministryFacilities.length} unidades):
-                    </h4>
-                    <div className="space-y-3">
-                      {Object.entries(facilityGroups).map(([name, facilities]) => (
-                        <CollapsibleFacilityGroup
-                          key={name}
-                          groupName={name}
-                          facilities={facilities}
-                          onUpdateJobSalary={onUpdateJobSalary}
-                        />
-                      ))}
+            <div>
+              <h4 className="font-bold mb-3 text-lg">Construir Benfeitorias:</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                {ministry.facilities.map(fac => (
+                  <button
+                    key={fac.name}
+                    onClick={() => onCreateFacility(ministry.id, fac)}
+                    className="bg-blue-500 text-white p-4 rounded hover:bg-blue-600 text-left transition transform hover:scale-105"
+                  >
+                    <div className="font-bold text-lg mb-1">{fac.name}</div>
+                    <div className="text-sm mb-2">💰 R$ {fac.cost.toLocaleString()}</div>
+                    <div className="text-xs opacity-90">
+                      👥 {fac.jobs.reduce((s, j) => s + j.count, 0)} vagas
                     </div>
-                  </div>
-                )}
-
-                {ministryFacilities.length === 0 && (
-                  <div className="bg-gray-50 p-4 rounded text-center text-gray-500">
-                    Nenhuma benfeitoria construída ainda.
-                  </div>
-                )}
+                  </button>
+                ))}
               </div>
-            )}
+
+              {Object.keys(facilityGroups).length > 0 && (
+                <div>
+                  <h4 className="font-bold mb-3 text-lg">
+                    Benfeitorias Construídas ({ministryFacilities.length} unidades):
+                  </h4>
+                  <div className="space-y-3">
+                    {Object.entries(facilityGroups).map(([name, facilities]) => (
+                      <CollapsibleFacilityGroup
+                        key={name}
+                        groupName={name}
+                        facilities={facilities}
+                        onUpdateJobSalary={onUpdateJobSalary}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {ministryFacilities.length === 0 && (
+                <div className="bg-gray-50 p-4 rounded text-center text-gray-500">
+                  Nenhuma benfeitoria construída ainda.
+                </div>
+              )}
+            </div>
           </div>
         );
       })}
@@ -366,7 +347,7 @@ const MinistriesTab = ({
             <div>
               <h3 className="font-bold text-lg">Nenhum Ministério Criado</h3>
               <p className="text-gray-700">
-                Crie ministérios para começar a desenvolver sua nação.
+                Crie ministérios para começar a desenvolver sua nação. O ministro será contratado automaticamente!
               </p>
             </div>
           </div>

@@ -76,7 +76,7 @@ export const GAME_CONFIG = {
   }
 };
 
-// Mapeamento de nomes de recursos - REMOVIDO terrasAraveis
+// Mapeamento de nomes de recursos
 export const RESOURCE_NAMES = {
   agua: 'Água',
   petroleo: 'Petróleo',
@@ -114,39 +114,12 @@ export const RESOURCE_NAMES = {
   lemon: 'Limão',
   
   // Especiarias
-  spices: 'Especiarias'
-};
-
-// Ícones de recursos
-export const RESOURCE_ICONS = {
-  agua: '💧',
-  petroleo: '🛢️',
-  gas: '💨',
-  ferro: '⚙️',
-  ouro: '🏆',
-  cobre: '🔶',
-  food: '🍞',
-  energy: '⚡',
-  fuel: '⛽',
-  madeira: '🪵',
-  furniture: '🪑',
-  fruits: '🍎',
-  vegetables: '🥕',
-  clothing: '👕',
-  medicine: '💊',
-  floresta: '🌲',
+  spices: 'Especiarias',
   
-  rice: '🍚',
-  beans: '🫘',
-  corn: '🌽',
-  sugar: '🍬',
-  coffee: '☕',
-  soy: '🫛',
-  lemon: '🍋',
-  apple: '🍎',
-  orange: '🍊',
-  banana: '🍌',
-  spices: '🌶️'
+  // Serviços e benefícios abstratos
+  education: 'Educação',
+  health: 'Saúde',
+  culture: 'Cultura'
 };
 
 // Categorias de recursos
