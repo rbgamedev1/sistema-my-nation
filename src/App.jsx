@@ -95,7 +95,7 @@ function App() {
               <li>• 👥 Cidadãos criam negócios autônomos</li>
               <li>• 🌾 11 produtos agrícolas diferentes</li>
               <li>• 😊 Sistema de satisfação da população</li>
-              <li>• 🚀 Expansão de negócios</li>
+              <li>• 🚀 Expansão automática de negócios</li>
               <li>• 💼 Economia orgânica e dinâmica</li>
             </ul>
           </div>
@@ -123,7 +123,6 @@ function App() {
       <Notification notifications={notifications} />
       
       <div className="container mx-auto p-4">
-        {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow mb-4 p-2">
           <div className="flex flex-wrap gap-2">
             {tabs.map(tab => (
@@ -147,7 +146,6 @@ function App() {
           </div>
         </div>
 
-        {/* Next Turn Button */}
         <div className="bg-white rounded-lg shadow mb-4 p-4">
           <div className="flex justify-between items-center">
             <div>
@@ -163,7 +161,6 @@ function App() {
           </div>
         </div>
 
-        {/* Content Area */}
         <div className="bg-white rounded-lg shadow p-6">
           {activeTab === 'overview' && (
             <OverviewTab nation={nation} finances={finances} />

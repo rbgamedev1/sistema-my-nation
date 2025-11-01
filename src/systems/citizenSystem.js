@@ -1,4 +1,4 @@
-// src/systems/citizenSystem.js - CORRIGIDO
+// src/systems/citizenSystem.js - CORRIGIDO (Limite populacional)
 
 export class CitizenSystem {
   constructor(nation) {
@@ -9,33 +9,16 @@ export class CitizenSystem {
     this.lastEventMonth = 0;
   }
 
-  // Níveis de educação e suas capacidades - CORRIGIDO
   getEducationLevels() {
     return {
-      none: {
-        canStartBusiness: false,
-        maxEmployees: 0
-      },
-      basic: {
-        canStartBusiness: true,
-        maxEmployees: 10
-      },
-      intermediate: {
-        canStartBusiness: true,
-        maxEmployees: 100
-      },
-      advanced: {
-        canStartBusiness: true,
-        maxEmployees: 1000
-      },
-      superior: {
-        canStartBusiness: true,
-        maxEmployees: 10000
-      }
+      none: { canStartBusiness: false, maxEmployees: 0 },
+      basic: { canStartBusiness: true, maxEmployees: 10 },
+      intermediate: { canStartBusiness: true, maxEmployees: 100 },
+      advanced: { canStartBusiness: true, maxEmployees: 1000 },
+      superior: { canStartBusiness: true, maxEmployees: 10000 }
     };
   }
 
-  // Tipos de negócios disponíveis
   getBusinessTypes() {
     return {
       agriculture: {
@@ -50,24 +33,36 @@ export class CitizenSystem {
         apple: { name: 'Maçã', icon: '🍎', basePrice: 35, produces: 'apple' },
         lemon: { name: 'Limão', icon: '🍋', basePrice: 30, produces: 'lemon' },
         spices: { name: 'Especiarias', icon: '🌶️', basePrice: 100, produces: 'spices' }
-      },
-      manufacturing: {
-        furniture: { name: 'Móveis', icon: '🪑', basePrice: 150, produces: 'furniture' },
-        clothing: { name: 'Roupas', icon: '👕', basePrice: 120, produces: 'clothing' }
-      },
-      services: {
-        medicine: { name: 'Medicamentos', icon: '💊', basePrice: 200, produces: 'medicine' }
       }
     };
   }
 
-  // Calcular demanda de produtos
+  // CORRIGIDO: Calcular total de empregos já criados
+  getTotalEmployeesInBusinesses() {
+    return this.autonomousBusinesses.reduce((sum, b) => sum + b.employees, 0);
+  }
+
+  // CORRIGIDO: Calcular trabalhadores disponíveis
+  getAvailableWorkers(nation) {
+    // Total de trabalhadores desempregados
+    const unemployed = nation.workers.common - nation.workers.employed;
+    
+    // Total de funcionários em negócios autônomos
+    const inAutonomousBusinesses = this.getTotalEmployeesInBusinesses();
+    
+    // Trabalhadores disponíveis = desempregados - já alocados em negócios
+    const available = unemployed - inAutonomousBusinesses;
+    
+    console.log(`[CitizenSystem] População: ${nation.population}, Empregados: ${nation.workers.employed}, Desempregados: ${unemployed}, Em negócios: ${inAutonomousBusinesses}, Disponíveis: ${available}`);
+    
+    return Math.max(0, available);
+  }
+
   calculateDemand(nation) {
     const demand = {};
     const consumption = {
       rice: 8, beans: 5, corn: 4, sugar: 2, soy: 3, coffee: 1.5,
-      banana: 2, orange: 1.5, apple: 1, lemon: 0.5, spices: 0.3,
-      furniture: 1, clothing: 0.5, medicine: 0.3
+      banana: 2, orange: 1.5, apple: 1, lemon: 0.5, spices: 0.3
     };
     const populationInThousands = nation.population / 1000;
 
@@ -77,24 +72,27 @@ export class CitizenSystem {
       const deficit = Math.max(0, needed - available);
 
       if (deficit > 0) {
-        demand[resource] = {
-          deficit,
-          needed,
-          currentProduction: available
-        };
+        demand[resource] = { deficit, needed, currentProduction: available };
       }
     });
 
     return demand;
   }
 
-  // Tentar criar novo negócio - CORRIGIDO: 30% chance, 100% privado
   tryCreateBusiness(nation) {
     const educationCaps = this.getEducationLevels();
     const currentCaps = educationCaps[nation.educationLevel];
 
     if (!currentCaps.canStartBusiness) return null;
-    if (Math.random() > 0.30) return null; // 30% chance
+    if (Math.random() > 0.30) return null;
+
+    // CORRIGIDO: Verificar trabalhadores disponíveis
+    const availableWorkers = this.getAvailableWorkers(nation);
+    
+    if (availableWorkers < 5) {
+      console.log('[CitizenSystem] Trabalhadores insuficientes para criar novo negócio');
+      return null;
+    }
 
     const demand = this.calculateDemand(nation);
     const demandProducts = Object.entries(demand).sort((a, b) => b[1].deficit - a[1].deficit);
@@ -106,7 +104,6 @@ export class CitizenSystem {
     let productInfo = null;
     let category = null;
 
-    // Encontrar categoria e produto
     for (const [cat, products] of Object.entries(businessTypes)) {
       if (products[product]) {
         productInfo = products[product];
@@ -117,30 +114,32 @@ export class CitizenSystem {
 
     if (!productInfo) return null;
 
-    // Criar cidadão
     const citizen = this.generateCitizen(nation.educationLevel);
-    
-    // Determinar tamanho do negócio baseado em educação
     const maxEmployees = currentCaps.maxEmployees;
-    const employees = Math.min(
+    
+    // CORRIGIDO: Limitar número de funcionários aos trabalhadores disponíveis
+    const desiredEmployees = Math.min(
       Math.floor(Math.random() * (maxEmployees * 0.3)) + Math.floor(maxEmployees * 0.1),
       maxEmployees
     );
     
-    const productionPerEmployee = category === 'agriculture' ? 20 : 
-                                   category === 'manufacturing' ? 5 : 3;
+    const employees = Math.min(desiredEmployees, availableWorkers);
+    
+    if (employees < 5) {
+      this.citizens.pop();
+      console.log('[CitizenSystem] Não há trabalhadores suficientes para criar negócio viável');
+      return null;
+    }
+    
+    const productionPerEmployee = 20;
     const production = employees * productionPerEmployee;
-
-    // CUSTOS 100% PRIVADOS - governo não subsidia
     const totalCost = employees * 10000;
 
-    // Verificar se cidadão tem dinheiro suficiente
     if (citizen.wealth < totalCost) {
       this.citizens.pop();
       return null;
     }
 
-    // Criar negócio
     const business = {
       id: this.nextBusinessId++,
       ownerId: citizen.id,
@@ -161,14 +160,16 @@ export class CitizenSystem {
 
     this.autonomousBusinesses.push(business);
     citizen.businessId = business.id;
-    citizen.wealth -= totalCost; // Cidadão paga 100%
+    citizen.wealth -= totalCost;
+
+    console.log(`[CitizenSystem] Negócio criado: ${business.name}, Funcionários: ${employees}, Disponíveis agora: ${availableWorkers - employees}`);
 
     return {
       success: true,
       citizen,
       business,
       resourcesUsed: {
-        money: 0, // Governo não subsidia
+        money: 0,
         citizenPaid: totalCost
       },
       benefits: {
@@ -210,7 +211,6 @@ export class CitizenSystem {
     return citizen;
   }
 
-  // Verificar expansão
   checkBusinessExpansion(business, nation) {
     const owner = this.citizens.find(c => c.id === business.ownerId);
     if (!owner) return null;
@@ -222,10 +222,20 @@ export class CitizenSystem {
     
     if (business.employees >= currentMaxEmployees * 0.8) return null;
 
+    // CORRIGIDO: Verificar trabalhadores disponíveis para expansão
+    const availableWorkers = this.getAvailableWorkers(nation);
+    
+    const desiredExpansion = Math.floor(business.employees * 0.5);
     const newEmployees = Math.min(
-      Math.floor(business.employees * 0.5),
-      currentMaxEmployees - business.employees
+      desiredExpansion,
+      currentMaxEmployees - business.employees,
+      availableWorkers // LIMITE DE TRABALHADORES DISPONÍVEIS
     );
+
+    if (newEmployees < 1) {
+      console.log(`[CitizenSystem] Sem trabalhadores disponíveis para expansão de ${business.name}`);
+      return null;
+    }
 
     const expansionCost = newEmployees * 10000;
 
@@ -233,8 +243,8 @@ export class CitizenSystem {
       businessId: business.id,
       newEmployees,
       expansionCost,
-      additionalProduction: Math.floor(business.production * 0.5),
-      additionalTax: Math.floor(business.monthlyTax * 0.5)
+      additionalProduction: Math.floor(business.production * (newEmployees / business.employees)),
+      additionalTax: Math.floor(business.monthlyTax * (newEmployees / business.employees))
     };
   }
 
@@ -247,37 +257,27 @@ export class CitizenSystem {
       return { success: false };
     }
 
+    // CORRIGIDO: Verificar novamente trabalhadores disponíveis no momento da expansão
+    const availableWorkers = this.getAvailableWorkers(nation);
+    
+    if (availableWorkers < expansion.newEmployees) {
+      console.log(`[CitizenSystem] Expansão cancelada: trabalhadores insuficientes`);
+      return { success: false, reason: 'Trabalhadores insuficientes' };
+    }
+
     business.employees += expansion.newEmployees;
     business.production += expansion.additionalProduction;
     business.monthlyTax += expansion.additionalTax;
-    business.monthlyProfit = Math.floor(business.production * 0.3);
+    business.monthlyRevenue = business.production * this.getBusinessTypes().agriculture[business.product].basePrice;
+    business.monthlyProfit = Math.floor(business.monthlyRevenue * 0.3);
     business.expandable = false;
     business.monthsActive = 0;
 
     owner.wealth -= expansion.expansionCost;
 
+    console.log(`[CitizenSystem] Negócio expandido: ${business.name}, +${expansion.newEmployees} funcionários, Total: ${business.employees}`);
+
     return { success: true, business, citizen: owner };
-  }
-
-  destroyBusiness(businessId) {
-    const index = this.autonomousBusinesses.findIndex(b => b.id === businessId);
-    if (index === -1) return { success: false };
-
-    const business = this.autonomousBusinesses[index];
-    const owner = this.citizens.find(c => c.id === business.ownerId);
-
-    this.autonomousBusinesses.splice(index, 1);
-
-    if (owner) {
-      owner.businessId = null;
-      owner.wealth += Math.floor(business.monthlyProfit * 6);
-    }
-
-    return {
-      success: true,
-      jobsLost: business.employees,
-      returnedResources: { money: 0 } // Governo não recupera nada
-    };
   }
 
   processTurn(nation) {
@@ -287,7 +287,6 @@ export class CitizenSystem {
     let productionAdded = {};
     const expansionOpportunities = [];
 
-    // Atualizar negócios existentes
     this.autonomousBusinesses.forEach(business => {
       business.monthsActive++;
       taxRevenue += business.monthlyTax;
@@ -308,7 +307,6 @@ export class CitizenSystem {
       }
     });
 
-    // Tentar criar novo negócio
     const newBusiness = this.tryCreateBusiness(nation);
     if (newBusiness) {
       events.push({ type: 'citizen_business_created', ...newBusiness });

@@ -1,4 +1,4 @@
-// src/hooks/useGameLogic.js - CORRIGIDO
+// src/hooks/useGameLogic.js - CORRIGIDO FINAL
 
 import { useState, useEffect } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -85,7 +85,6 @@ export const useGameLogic = () => {
       educationLevel: 'none',
       economicStatus: 'medium',
       resources: {
-        land: territory.terrasAraveis || 10000,
         water: territory.agua || 5000,
         rice: 0,
         beans: 0,
@@ -155,7 +154,7 @@ export const useGameLogic = () => {
     addNotification(`✅ Ministério de ${ministryData.name} criado com sucesso!`, 'success');
   };
 
-  const hireMinister = (ministryId, salary) => {
+  const hireMinister = (ministryId, salary = 5000) => {
     if (!nation) return;
 
     const salaryNum = parseInt(salary);
@@ -187,8 +186,7 @@ export const useGameLogic = () => {
         m.id === ministryId
           ? { ...m, minister: { name: `Ministro ${m.name}`, salary: salaryNum } }
           : m
-      ),
-      treasury: prev.treasury - salaryNum
+      )
     }));
 
     addNotification(`👔 Ministro contratado com sucesso! Salário: R$ ${salaryNum.toLocaleString()}`, 'success');
@@ -210,22 +208,13 @@ export const useGameLogic = () => {
       return;
     }
 
-    const oldSalary = ministry.minister.salary;
-    const difference = salaryNum - oldSalary;
-
-    if (difference > 0 && nation.treasury < difference) {
-      addNotification('Tesouro insuficiente para aumentar o salário!', 'error');
-      return;
-    }
-
     setNation(prev => ({
       ...prev,
       ministries: prev.ministries.map(m =>
         m.id === ministryId
           ? { ...m, minister: { ...m.minister, salary: salaryNum } }
           : m
-      ),
-      treasury: prev.treasury - difference
+      )
     }));
 
     addNotification(
@@ -419,7 +408,6 @@ export const useGameLogic = () => {
       ferro: 50,
       ouro: 500,
       cobre: 70,
-      terrasAraveis: 30,
       food: 20,
       energy: 15,
       fuel: 90,
@@ -516,7 +504,7 @@ export const useGameLogic = () => {
     if (citizenSystem) {
       const capabilities = citizenSystem.getEducationLevels()[nextLevel];
       addNotification(
-        `💼 Novos tipos de negócio desbloqueados! Capacidade: ${capabilities.employeeCapacity} funcionários`,
+        `💼 Novos tipos de negócio desbloqueados! Capacidade: ${capabilities.maxEmployees} funcionários`,
         'info'
       );
     }
@@ -537,77 +525,39 @@ export const useGameLogic = () => {
       return;
     }
 
-    if ((nation.resources.land || 0) < expansion.costs.land) {
-      addNotification('Terra insuficiente para expansão!', 'error');
-      return;
-    }
-
-    if ((nation.resources.water || 0) < expansion.costs.water) {
-      addNotification('Água insuficiente para expansão!', 'error');
-      return;
-    }
-
-    if (nation.treasury < expansion.costs.money) {
-      addNotification(
-        `Tesouro insuficiente! Necessário R$ ${expansion.costs.money.toLocaleString()}`,
-        'error'
-      );
-      return;
-    }
-
     const result = citizenSystem.approveExpansion(expansion, nation);
 
     if (result.success) {
-      setNation(prev => ({
-        ...prev,
-        resources: {
-          ...prev.resources,
-          land: prev.resources.land - expansion.costs.land,
-          water: prev.resources.water - expansion.costs.water
-        },
-        treasury: prev.treasury - expansion.costs.money
-      }));
-
       addNotification(
-        `🚀 Negócio expandido! ${result.citizen.name} agora tem um negócio ${result.business.size}`,
+        `🚀 Negócio expandido! ${result.citizen.name} agora emprega ${result.business.employees} pessoas`,
         'success'
       );
       addNotification(
-        `💼 +${result.business.employees - business.employees} novos empregos criados!`,
+        `💼 +${expansion.newEmployees} novos empregos criados!`,
         'info'
       );
     } else {
-      addNotification(result.reason, 'error');
+      addNotification(result.reason || 'Falha ao expandir negócio', 'error');
     }
   };
 
   const destroyCitizenBusiness = (businessId) => {
     if (!nation || !citizenSystem) return;
 
-    const result = citizenSystem.destroyBusiness(businessId, nation);
-
-    if (result.success) {
-      setNation(prev => ({
-        ...prev,
-        resources: {
-          ...prev.resources,
-          land: prev.resources.land + result.returnedResources.land,
-          water: prev.resources.water + result.returnedResources.water
-        },
-        treasury: prev.treasury + result.returnedResources.money
-      }));
-
-      addNotification(
-        `🗑️ Negócio destruído. ${result.jobsLost} empregos perdidos.`,
-        'warning'
-      );
-      addNotification(
-        `💰 Recursos recuperados: ${result.returnedResources.land} terra, ${result.returnedResources.water} água, R$ ${result.returnedResources.money.toLocaleString()}`,
-        'info'
-      );
-    } else {
-      addNotification(result.reason, 'error');
+    const business = citizenSystem.autonomousBusinesses.find(b => b.id === businessId);
+    if (!business) {
+      addNotification('Negócio não encontrado!', 'error');
+      return;
     }
+
+    const jobsLost = business.employees;
+    
+    citizenSystem.autonomousBusinesses = citizenSystem.autonomousBusinesses.filter(b => b.id !== businessId);
+
+    addNotification(
+      `🗑️ Negócio destruído. ${jobsLost} empregos perdidos.`,
+      'warning'
+    );
   };
 
   const getAutonomousProduction = () => {
@@ -625,9 +575,14 @@ export const useGameLogic = () => {
 
     const autonomousProduction = getAutonomousProduction();
     
+    const totalResources = { ...nation.resources };
+    Object.entries(nation.resourceStorage || {}).forEach(([resource, amount]) => {
+      totalResources[resource] = (totalResources[resource] || 0) + amount;
+    });
+    
     return populationNeeds.generateReport(
       nation.population,
-      nation.resources,
+      totalResources,
       autonomousProduction,
       nation.educationLevel,
       nation.economicStatus
@@ -641,7 +596,9 @@ export const useGameLogic = () => {
 
     const finances = calculateFinances(nation);
     
-    if (finances.balance < 0 && nation.treasury + finances.balance < 0) {
+    const balanceValue = isNaN(finances.balance) ? 0 : finances.balance;
+    
+    if (balanceValue < 0 && nation.treasury + balanceValue < 0) {
       addNotification(
         '🚨 ALERTA: Tesouro insuficiente para pagar despesas mensais! Ajuste suas finanças!',
         'error'
@@ -674,21 +631,41 @@ export const useGameLogic = () => {
       return { ...research, progress: newProgress };
     }).filter(Boolean);
 
-    // SISTEMA DE CIDADÃOS - CORRIGIDO
     let citizenResults = null;
     if (citizenSystem && nation.educationLevel !== 'none') {
       console.log('[nextTurn] Processando turno de cidadãos...');
       citizenResults = citizenSystem.processTurn(nation);
       console.log('[nextTurn] Resultados:', citizenResults);
+      
+      if (citizenResults.expansionOpportunities && citizenResults.expansionOpportunities.length > 0) {
+        console.log('[nextTurn] Processando expansões automáticas...');
+        citizenResults.expansionOpportunities.forEach(({ business, expansion, owner }) => {
+          if (owner && owner.wealth >= expansion.expansionCost) {
+            const result = citizenSystem.approveExpansion(expansion, nation);
+            if (result.success) {
+              addNotification(
+                `🚀 ${owner.name} expandiu seu negócio automaticamente! +${expansion.newEmployees} funcionários`,
+                'success'
+              );
+            }
+          }
+        });
+      }
     }
 
     let satisfactionReport = null;
     let satisfactionEffects = { productivity: 1.0, taxCompliance: 1.0, growth: 1.0 };
     if (populationNeeds) {
       const autonomousProduction = getAutonomousProduction();
+      
+      const totalResources = { ...nation.resources };
+      Object.entries(nation.resourceStorage || {}).forEach(([resource, amount]) => {
+        totalResources[resource] = (totalResources[resource] || 0) + amount;
+      });
+      
       satisfactionReport = populationNeeds.generateReport(
         nation.population,
-        nation.resources,
+        totalResources,
         autonomousProduction,
         nation.educationLevel,
         nation.economicStatus
@@ -696,10 +673,9 @@ export const useGameLogic = () => {
       satisfactionEffects = satisfactionReport.effects;
     }
 
-    const adjustedBalance = finances.balance * satisfactionEffects.taxCompliance;
+    const adjustedBalance = isNaN(balanceValue) ? 0 : balanceValue * satisfactionEffects.taxCompliance;
     const adjustedGrowth = Math.floor(populationGrowth * satisfactionEffects.growth);
 
-    // ATUALIZAR PRODUÇÃO DE CIDADÃOS
     const updatedProduction = { ...nation.production };
     if (citizenResults && citizenResults.productionAdded) {
       Object.entries(citizenResults.productionAdded).forEach(([product, amount]) => {
@@ -710,7 +686,7 @@ export const useGameLogic = () => {
     setNation(prev => ({
       ...prev,
       currentMonth: prev.currentMonth + 1,
-      treasury: prev.treasury + adjustedBalance + (citizenResults?.taxRevenue || 0),
+      treasury: Math.max(0, prev.treasury + adjustedBalance + (citizenResults?.taxRevenue || 0)),
       population: prev.population + adjustedGrowth,
       happiness,
       stats,
@@ -748,16 +724,6 @@ export const useGameLogic = () => {
     if (citizenResults && citizenResults.events.length > 0) {
       citizenResults.events.forEach(event => {
         if (event.type === 'citizen_business_created') {
-          setNation(prev => ({
-            ...prev,
-            resources: {
-              ...prev.resources,
-              land: prev.resources.land - event.resourcesUsed.land,
-              water: prev.resources.water - event.resourcesUsed.water
-            },
-            treasury: prev.treasury + event.resourcesUsed.payment
-          }));
-
           addNotification(
             `🌾 Novo Negócio! ${event.citizen.name} criou uma plantação de ${event.business.productName}`,
             'success'
@@ -768,13 +734,6 @@ export const useGameLogic = () => {
           );
         }
       });
-    }
-
-    if (citizenResults && citizenResults.expansionOpportunities.length > 0) {
-      addNotification(
-        `🚀 ${citizenResults.expansionOpportunities.length} negócio(s) pronto(s) para expandir!`,
-        'info'
-      );
     }
 
     if (satisfactionReport) {
@@ -810,6 +769,11 @@ export const useGameLogic = () => {
       addNotification(
         `👥 População cresceu em ${adjustedGrowth.toLocaleString()} habitantes!`,
         'info'
+      );
+    } else if (adjustedGrowth < 0) {
+      addNotification(
+        `⚠️ População diminuiu em ${Math.abs(adjustedGrowth).toLocaleString()} habitantes!`,
+        'warning'
       );
     }
 

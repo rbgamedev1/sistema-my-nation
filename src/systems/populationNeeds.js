@@ -1,39 +1,25 @@
-// src/systems/populationNeeds.js - CORRIGIDO
+// src/systems/populationNeeds.js - CORRIGIDO (considera estoque)
 
 export class PopulationNeedsSystem {
   constructor() {
     this.consumptionRates = this.getConsumptionRates();
   }
 
-  // Taxas de consumo por 1000 habitantes/mês
   getConsumptionRates() {
     return {
-      // ALIMENTOS BÁSICOS (críticos)
       rice: 8,
       beans: 5,
       corn: 4,
-      
-      // ALIMENTOS IMPORTANTES
       sugar: 2,
       soy: 3,
-      
-      // BEBIDAS
       coffee: 1.5,
-      
-      // FRUTAS (variedade)
       banana: 2,
       orange: 1.5,
       apple: 1,
       lemon: 0.5,
-      
-      // ESPECIARIAS
       spices: 0.3,
-      
-      // RECURSOS BÁSICOS
       agua: 15,
       energy: 8,
-      
-      // RECURSOS SECUNDÁRIOS
       furniture: 1,
       fruits: 2,
       vegetables: 3,
@@ -42,7 +28,6 @@ export class PopulationNeedsSystem {
     };
   }
 
-  // Categorias de necessidades
   getCategories() {
     return {
       critical: ['rice', 'beans', 'agua', 'energy'],
@@ -52,7 +37,6 @@ export class PopulationNeedsSystem {
     };
   }
 
-  // Calcular necessidades da população
   calculateNeeds(population) {
     const needs = {};
     const populationInThousands = population / 1000;
@@ -64,16 +48,20 @@ export class PopulationNeedsSystem {
     return needs;
   }
 
-  // Calcular satisfação baseada no atendimento das necessidades
   calculateSatisfaction(population, availableResources, autonomousProduction, educationLevel, economicStatus) {
     const needs = this.calculateNeeds(population);
     const categories = this.getCategories();
     
-    // Combinar recursos governamentais + produção autônoma
+    // CORRIGIDO: Combinar TODOS os recursos disponíveis (produção + estoque)
     const totalAvailable = { ...availableResources };
+    
+    // Adicionar produção autônoma
     Object.entries(autonomousProduction).forEach(([resource, amount]) => {
       totalAvailable[resource] = (totalAvailable[resource] || 0) + amount;
     });
+
+    console.log('[PopulationNeeds] Recursos Totais Disponíveis:', totalAvailable);
+    console.log('[PopulationNeeds] Necessidades:', needs);
 
     const satisfaction = {
       critical: { met: 0, total: 0, percentage: 0 },
@@ -85,7 +73,6 @@ export class PopulationNeedsSystem {
       surpluses: []
     };
 
-    // Avaliar cada categoria
     Object.entries(categories).forEach(([category, resources]) => {
       let categoryMet = 0;
       let categoryTotal = 0;
@@ -95,10 +82,11 @@ export class PopulationNeedsSystem {
         const available = totalAvailable[resource] || 0;
         const fulfillment = needed > 0 ? Math.min(available / needed, 1) : 1;
 
+        console.log(`[PopulationNeeds] ${resource}: needed=${needed}, available=${available}, fulfillment=${(fulfillment*100).toFixed(1)}%`);
+
         categoryMet += fulfillment;
         categoryTotal += 1;
 
-        // Identificar escassez crítica
         if (category === 'critical' && fulfillment < 0.5) {
           satisfaction.criticalShortages.push({
             item: resource,
@@ -109,7 +97,6 @@ export class PopulationNeedsSystem {
           });
         }
 
-        // Identificar excedentes
         if (available > needed * 1.2) {
           satisfaction.surpluses.push({
             item: resource,
@@ -125,7 +112,6 @@ export class PopulationNeedsSystem {
       }
     });
 
-    // Calcular satisfação geral (pesos diferentes por categoria)
     const weights = {
       critical: 0.50,
       important: 0.25,
@@ -140,7 +126,6 @@ export class PopulationNeedsSystem {
 
     satisfaction.overallSatisfaction = Math.round(weightedSum);
 
-    // Modificadores baseados em educação e economia
     const educationBonus = this.getEducationBonus(educationLevel);
     const economicBonus = this.getEconomicBonus(economicStatus);
     
@@ -173,7 +158,6 @@ export class PopulationNeedsSystem {
     return bonuses[economicStatus] || 0;
   }
 
-  // Calcular efeitos na economia baseado na satisfação
   calculateEconomicEffects(satisfactionLevel) {
     const effects = {
       productivity: 1.0,
@@ -217,7 +201,6 @@ export class PopulationNeedsSystem {
     return effects;
   }
 
-  // Gerar relatório completo
   generateReport(population, availableResources, autonomousProduction, educationLevel, economicStatus) {
     const needs = this.calculateNeeds(population);
     const satisfaction = this.calculateSatisfaction(
@@ -238,7 +221,6 @@ export class PopulationNeedsSystem {
     };
   }
 
-  // Gerar recomendações
   generateRecommendations(satisfaction, needs, availableResources, autonomousProduction) {
     const recommendations = [];
     const totalAvailable = { ...availableResources };
@@ -246,7 +228,6 @@ export class PopulationNeedsSystem {
       totalAvailable[resource] = (totalAvailable[resource] || 0) + amount;
     });
 
-    // Recomendações para recursos críticos
     if (satisfaction.criticalShortages.length > 0) {
       satisfaction.criticalShortages.forEach(shortage => {
         recommendations.push({
@@ -259,7 +240,6 @@ export class PopulationNeedsSystem {
       });
     }
 
-    // Recomendações por categoria
     Object.entries(satisfaction).forEach(([category, data]) => {
       if (category === 'critical' || category === 'important') {
         if (data.percentage < 70) {
@@ -274,7 +254,6 @@ export class PopulationNeedsSystem {
       }
     });
 
-    // Recomendações para excedentes
     if (satisfaction.surpluses.length > 3) {
       recommendations.push({
         priority: 'BAIXA',
@@ -284,7 +263,6 @@ export class PopulationNeedsSystem {
       });
     }
 
-    // Recomendação de educação
     if (satisfaction.overallSatisfaction < 60) {
       recommendations.push({
         priority: 'MÉDIA',
@@ -297,7 +275,6 @@ export class PopulationNeedsSystem {
     return recommendations;
   }
 
-  // Obter informações de um recurso específico
   getResourceInfo(resource) {
     const products = {
       rice: { name: 'Arroz', icon: '🍚', category: 'critical', description: 'Alimento básico essencial' },
