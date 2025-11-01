@@ -1,4 +1,4 @@
-// src/data/ministryTypes.js - ATUALIZADO COM PRODUTOS AGRÍCOLAS
+// src/data/ministryTypes.js - CORRIGIDO (Removido terrasAraveis)
 
 export const MINISTRY_TYPES = {
   educacao: {
@@ -136,7 +136,7 @@ export const MINISTRY_TYPES = {
           { role: 'Operador de Máquinas', count: 8, minSalary: 2000 }
         ],
         benefits: { food: 25, economy: 10, happiness: 5 },
-        resourceConsumption: { agua: 600, terrasAraveis: 120, energy: 60 },
+        resourceConsumption: { agua: 600, energy: 60 },
         resourceProduction: { rice: 900 }
       },
       {
@@ -149,7 +149,7 @@ export const MINISTRY_TYPES = {
           { role: 'Operador de Máquinas', count: 7, minSalary: 2000 }
         ],
         benefits: { food: 20, economy: 10, happiness: 5 },
-        resourceConsumption: { agua: 500, terrasAraveis: 100, energy: 50 },
+        resourceConsumption: { agua: 500, energy: 50 },
         resourceProduction: { beans: 600 }
       },
       {
@@ -162,7 +162,7 @@ export const MINISTRY_TYPES = {
           { role: 'Operador de Máquinas', count: 6, minSalary: 2000 }
         ],
         benefits: { food: 18, economy: 10, happiness: 5 },
-        resourceConsumption: { agua: 450, terrasAraveis: 90, energy: 45 },
+        resourceConsumption: { agua: 450, energy: 45 },
         resourceProduction: { corn: 500 }
       },
       {
@@ -175,7 +175,7 @@ export const MINISTRY_TYPES = {
           { role: 'Operador de Máquinas', count: 8, minSalary: 2000 }
         ],
         benefits: { food: 22, economy: 15, happiness: 5 },
-        resourceConsumption: { agua: 550, terrasAraveis: 110, energy: 55 },
+        resourceConsumption: { agua: 550, energy: 55 },
         resourceProduction: { soy: 400 }
       },
       
@@ -190,7 +190,7 @@ export const MINISTRY_TYPES = {
           { role: 'Operador Industrial', count: 15, minSalary: 2500 }
         ],
         benefits: { food: 15, economy: 20, happiness: 5 },
-        resourceConsumption: { agua: 700, terrasAraveis: 140, energy: 150 },
+        resourceConsumption: { agua: 700, energy: 150 },
         resourceProduction: { sugar: 300 }
       },
       {
@@ -203,7 +203,7 @@ export const MINISTRY_TYPES = {
           { role: 'Técnico de Beneficiamento', count: 10, minSalary: 2200 }
         ],
         benefits: { food: 12, economy: 25, happiness: 8 },
-        resourceConsumption: { agua: 600, terrasAraveis: 120, energy: 70 },
+        resourceConsumption: { agua: 600, energy: 70 },
         resourceProduction: { coffee: 200 }
       },
       
@@ -217,7 +217,7 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador Rural', count: 35, minSalary: 1500 }
         ],
         benefits: { food: 15, economy: 12, happiness: 7 },
-        resourceConsumption: { agua: 450, terrasAraveis: 80, energy: 30 },
+        resourceConsumption: { agua: 450, energy: 30 },
         resourceProduction: { banana: 300 }
       },
       {
@@ -229,7 +229,7 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador Rural', count: 38, minSalary: 1500 }
         ],
         benefits: { food: 16, economy: 13, happiness: 7 },
-        resourceConsumption: { agua: 480, terrasAraveis: 85, energy: 32 },
+        resourceConsumption: { agua: 480, energy: 32 },
         resourceProduction: { orange: 250 }
       },
       {
@@ -241,7 +241,7 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador Rural', count: 40, minSalary: 1550 }
         ],
         benefits: { food: 18, economy: 14, happiness: 8 },
-        resourceConsumption: { agua: 500, terrasAraveis: 90, energy: 35 },
+        resourceConsumption: { agua: 500, energy: 35 },
         resourceProduction: { apple: 200 }
       },
       {
@@ -253,7 +253,7 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador Rural', count: 30, minSalary: 1500 }
         ],
         benefits: { food: 12, economy: 10, happiness: 6 },
-        resourceConsumption: { agua: 400, terrasAraveis: 70, energy: 28 },
+        resourceConsumption: { agua: 400, energy: 28 },
         resourceProduction: { lemon: 120 }
       },
       
@@ -267,7 +267,7 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador', count: 25, minSalary: 1500 }
         ],
         benefits: { food: 10, economy: 18, happiness: 8 },
-        resourceConsumption: { agua: 300, terrasAraveis: 50, energy: 25 },
+        resourceConsumption: { agua: 300, energy: 25 },
         resourceProduction: { spices: 80 }
       },
       
@@ -282,7 +282,7 @@ export const MINISTRY_TYPES = {
           { role: 'Operador de Máquinas', count: 8, minSalary: 2000 }
         ],
         benefits: { food: 30, economy: 10, happiness: 5 },
-        resourceConsumption: { agua: 500, terrasAraveis: 100, energy: 50 },
+        resourceConsumption: { agua: 500, energy: 50 },
         resourceProduction: { food: 1000 }
       },
       {
@@ -294,7 +294,7 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador Rural', count: 40, minSalary: 1500 }
         ],
         benefits: { food: 20, economy: 15, happiness: 8 },
-        resourceConsumption: { agua: 400, terrasAraveis: 80, energy: 30 },
+        resourceConsumption: { agua: 400, energy: 30 },
         resourceProduction: { fruits: 800 }
       },
       {
@@ -306,7 +306,7 @@ export const MINISTRY_TYPES = {
           { role: 'Trabalhador Rural', count: 35, minSalary: 1500 }
         ],
         benefits: { food: 15, economy: 15, happiness: 7 },
-        resourceConsumption: { agua: 350, terrasAraveis: 70, energy: 25 },
+        resourceConsumption: { agua: 350, energy: 25 },
         resourceProduction: { vegetables: 700 }
       },
       {

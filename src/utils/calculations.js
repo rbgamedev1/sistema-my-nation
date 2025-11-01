@@ -1,4 +1,4 @@
-// src/utils/calculations.js - CORRIGIDO (Crescimento populacional realista)
+// src/utils/calculations.js - CORRIGIDO
 
 import { GAME_CONFIG, RESOURCE_CATEGORIES, DEFICIT_PENALTIES } from '../data/gameConfig';
 
@@ -40,12 +40,14 @@ export const calculateResourceBalance = (nation) => {
   const consumption = {};
   const balance = {};
 
+  // Recursos do território
   if (nation.territory?.resources) {
     Object.entries(nation.territory.resources).forEach(([resource, amount]) => {
       production[resource] = amount;
     });
   }
 
+  // Produção das benfeitorias
   nation.facilities.forEach(facility => {
     if (facility.resourceProduction) {
       Object.entries(facility.resourceProduction).forEach(([resource, amount]) => {
@@ -60,17 +62,20 @@ export const calculateResourceBalance = (nation) => {
     }
   });
 
+  // Produção dos recursos do nation.production (incluindo produção autônoma)
   if (nation.production) {
     Object.entries(nation.production).forEach(([resource, amount]) => {
       production[resource] = (production[resource] || 0) + amount;
     });
   }
 
+  // Consumo da população
   const populationConsumption = calculatePopulationResourceConsumption(nation.population);
   Object.entries(populationConsumption).forEach(([resource, amount]) => {
     consumption[resource] = (consumption[resource] || 0) + amount;
   });
 
+  // Calcular balanço
   const allResources = new Set([
     ...Object.keys(production),
     ...Object.keys(consumption)
@@ -94,19 +99,23 @@ export const calculateFinances = (nation) => {
     balance: 0 
   };
 
+  // Receita de impostos apenas de empregados
   const employedWorkers = nation.workers.employed || 0;
   const taxRevenue = employedWorkers * GAME_CONFIG.BASE_WORKER_SALARY * GAME_CONFIG.EMPLOYMENT_TAX_RATE;
   
   const revenue = taxRevenue;
   
+  // Despesas com salários
   let salaryExpenses = 0;
   
+  // Salários dos ministros
   nation.ministries.forEach(ministry => {
     if (ministry.minister) {
       salaryExpenses += ministry.minister.salary || 0;
     }
   });
   
+  // Salários dos funcionários das benfeitorias
   nation.facilities.forEach(facility => {
     facility.jobs.forEach(job => {
       const filled = job.filled || 0;
@@ -136,13 +145,15 @@ const getResourceCategory = (resource) => {
 };
 
 export const calculateHappiness = (nation) => {
-  let happiness = 50;
+  let happiness = 50; // Base
   const stats = { ...nation.stats };
   
+  // Resetar stats
   Object.keys(stats).forEach(key => {
     stats[key] = 0;
   });
   
+  // Somar benefícios das benfeitorias
   nation.facilities.forEach(facility => {
     if (facility.benefits) {
       Object.entries(facility.benefits).forEach(([key, value]) => {
@@ -151,42 +162,45 @@ export const calculateHappiness = (nation) => {
     }
   });
 
-  happiness += stats.education * 0.2;
-  happiness += stats.health * 0.3;
-  happiness += stats.security * 0.1;
-  happiness += stats.food * 0.2;
-  happiness += (stats.culture || 0) * 0.15;
+  // Calcular felicidade baseada nos stats com pesos corretos
+  happiness += stats.education * 0.2;   // 20% de peso
+  happiness += stats.health * 0.3;      // 30% de peso
+  happiness += stats.security * 0.1;    // 10% de peso
+  happiness += stats.food * 0.2;        // 20% de peso
+  happiness += (stats.culture || 0) * 0.15; // 15% de peso
 
+  // Penalidades por déficit de recursos
   const { balance: resourceBalance } = calculateResourceBalance(nation);
   
   Object.entries(resourceBalance).forEach(([resource, amount]) => {
     if (amount < 0) {
       const category = getResourceCategory(resource);
       const penalty = DEFICIT_PENALTIES[category] || 0;
-      happiness += penalty;
+      happiness += penalty; // penalty já é negativo
     }
   });
   
-  return { happiness: Math.min(100, Math.max(0, happiness)), stats };
+  return { 
+    happiness: Math.min(100, Math.max(0, happiness)), 
+    stats 
+  };
 };
 
 export const calculatePopulationGrowth = (population, happiness) => {
-  // CORRIGIDO: Taxa de natalidade realista
-  // Entre 5 a 12 nascimentos por 1000 habitantes por mês
-  // A felicidade afeta dentro dessa faixa
+  // Taxa de natalidade realista: 5 a 12 nascimentos por 1000 habitantes por mês
+  let birthRatePer1000 = 5;
   
-  let birthRatePer1000 = 5; // Mínimo: 5 nascimentos por 1000 hab/mês
-  
-  if (happiness >= 80) {
-    birthRatePer1000 = 12; // Máximo: 12 nascimentos por 1000 hab/mês
+  if (happiness >= 90) {
+    birthRatePer1000 = 12;
+  } else if (happiness >= 75) {
+    birthRatePer1000 = 10;
   } else if (happiness >= 60) {
-    birthRatePer1000 = 10; // 10 nascimentos por 1000 hab/mês
+    birthRatePer1000 = 8;
   } else if (happiness >= 40) {
-    birthRatePer1000 = 8; // 8 nascimentos por 1000 hab/mês
+    birthRatePer1000 = 7;
   } else if (happiness >= 20) {
-    birthRatePer1000 = 6; // 6 nascimentos por 1000 hab/mês
+    birthRatePer1000 = 6;
   }
-  // else: 5 nascimentos por 1000 hab/mês (felicidade < 20)
   
   const populationInThousands = population / 1000;
   const growth = Math.floor(populationInThousands * birthRatePer1000);
@@ -209,7 +223,8 @@ export const autoFillJobs = (nation) => {
       const vacancies = job.count - currentFilled;
 
       if (vacancies > 0 && availableWorkers > 0 && attractiveness >= 1) {
-        const fillRate = Math.min(attractiveness, 2) * 0.1;
+        // Taxa de preenchimento baseada na atratividade do salário
+        const fillRate = Math.min(attractiveness, 2) * 0.15; // 15% a 30% por turno
         const toFill = Math.min(
           Math.ceil(vacancies * fillRate),
           vacancies,

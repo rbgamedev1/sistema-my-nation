@@ -1,4 +1,4 @@
-// src/systems/populationNeeds.js - CORRIGIDO (considera estoque)
+// src/systems/populationNeeds.js - CORRIGIDO
 
 export class PopulationNeedsSystem {
   constructor() {
@@ -7,19 +7,28 @@ export class PopulationNeedsSystem {
 
   getConsumptionRates() {
     return {
+      // Alimentos críticos
       rice: 8,
       beans: 5,
       corn: 4,
+      
+      // Alimentos importantes
       sugar: 2,
       soy: 3,
       coffee: 1.5,
+      
+      // Frutas (conforto)
       banana: 2,
       orange: 1.5,
       apple: 1,
       lemon: 0.5,
       spices: 0.3,
+      
+      // Recursos básicos
       agua: 15,
       energy: 8,
+      
+      // Outros
       furniture: 1,
       fruits: 2,
       vegetables: 3,
@@ -52,10 +61,15 @@ export class PopulationNeedsSystem {
     const needs = this.calculateNeeds(population);
     const categories = this.getCategories();
     
-    // CORRIGIDO: Combinar TODOS os recursos disponíveis (produção + estoque)
-    const totalAvailable = { ...availableResources };
+    // Combinar TODOS os recursos disponíveis (estoque + produção autônoma)
+    const totalAvailable = {};
     
-    // Adicionar produção autônoma
+    // Adicionar recursos disponíveis (do estoque do governo)
+    Object.entries(availableResources).forEach(([resource, amount]) => {
+      totalAvailable[resource] = amount;
+    });
+    
+    // Adicionar produção autônoma dos cidadãos
     Object.entries(autonomousProduction).forEach(([resource, amount]) => {
       totalAvailable[resource] = (totalAvailable[resource] || 0) + amount;
     });
@@ -73,6 +87,7 @@ export class PopulationNeedsSystem {
       surpluses: []
     };
 
+    // Calcular satisfação por categoria
     Object.entries(categories).forEach(([category, resources]) => {
       let categoryMet = 0;
       let categoryTotal = 0;
@@ -82,11 +97,12 @@ export class PopulationNeedsSystem {
         const available = totalAvailable[resource] || 0;
         const fulfillment = needed > 0 ? Math.min(available / needed, 1) : 1;
 
-        console.log(`[PopulationNeeds] ${resource}: needed=${needed}, available=${available}, fulfillment=${(fulfillment*100).toFixed(1)}%`);
+        console.log(`[PopulationNeeds] ${resource}: needed=${needed.toFixed(1)}, available=${available.toFixed(1)}, fulfillment=${(fulfillment*100).toFixed(1)}%`);
 
         categoryMet += fulfillment;
         categoryTotal += 1;
 
+        // Registrar escassez crítica
         if (category === 'critical' && fulfillment < 0.5) {
           satisfaction.criticalShortages.push({
             item: resource,
@@ -97,7 +113,8 @@ export class PopulationNeedsSystem {
           });
         }
 
-        if (available > needed * 1.2) {
+        // Registrar excedentes
+        if (available > needed * 1.5) {
           satisfaction.surpluses.push({
             item: resource,
             surplus: (available - needed).toFixed(1)
@@ -112,11 +129,12 @@ export class PopulationNeedsSystem {
       }
     });
 
+    // Calcular satisfação geral com pesos
     const weights = {
-      critical: 0.50,
-      important: 0.25,
-      comfort: 0.15,
-      health: 0.10
+      critical: 0.50,   // 50% do peso
+      important: 0.25,  // 25% do peso
+      comfort: 0.15,    // 15% do peso
+      health: 0.10      // 10% do peso
     };
 
     let weightedSum = 0;
@@ -126,12 +144,15 @@ export class PopulationNeedsSystem {
 
     satisfaction.overallSatisfaction = Math.round(weightedSum);
 
+    // Aplicar bônus de educação e economia
     const educationBonus = this.getEducationBonus(educationLevel);
     const economicBonus = this.getEconomicBonus(economicStatus);
     
     satisfaction.overallSatisfaction = Math.min(100, 
-      satisfaction.overallSatisfaction + educationBonus + economicBonus
+      Math.max(0, satisfaction.overallSatisfaction + educationBonus + economicBonus)
     );
+
+    console.log(`[PopulationNeeds] Satisfação Final: ${satisfaction.overallSatisfaction}% (base: ${Math.round(weightedSum)}%, educação: +${educationBonus}%, economia: +${economicBonus}%)`);
 
     return satisfaction;
   }
@@ -228,18 +249,27 @@ export class PopulationNeedsSystem {
       totalAvailable[resource] = (totalAvailable[resource] || 0) + amount;
     });
 
+    // Recomendações para escassez crítica
     if (satisfaction.criticalShortages.length > 0) {
       satisfaction.criticalShortages.forEach(shortage => {
+        const farmTypes = {
+          rice: 'Fazenda de Arroz',
+          beans: 'Fazenda de Feijão',
+          agua: 'Poço Artesiano ou Estação de Tratamento',
+          energy: 'Usina de Energia'
+        };
+        
         recommendations.push({
           priority: 'URGENTE',
           type: 'deficit',
           resource: shortage.item,
-          message: `Falta crítica de ${shortage.item}! Déficit de ${shortage.deficit} unidades. Construa fazendas imediatamente!`,
+          message: `Falta crítica de ${shortage.item}! Déficit de ${shortage.deficit} unidades. Construa ${farmTypes[shortage.item] || 'fazendas'} imediatamente!`,
           action: 'build_farm'
         });
       });
     }
 
+    // Recomendações para categorias com satisfação baixa
     Object.entries(satisfaction).forEach(([category, data]) => {
       if (category === 'critical' || category === 'important') {
         if (data.percentage < 70) {
@@ -254,6 +284,7 @@ export class PopulationNeedsSystem {
       }
     });
 
+    // Recomendações para excedentes
     if (satisfaction.surpluses.length > 3) {
       recommendations.push({
         priority: 'BAIXA',
@@ -263,6 +294,7 @@ export class PopulationNeedsSystem {
       });
     }
 
+    // Recomendações para educação
     if (satisfaction.overallSatisfaction < 60) {
       recommendations.push({
         priority: 'MÉDIA',
