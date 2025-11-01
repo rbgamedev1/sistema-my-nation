@@ -1,4 +1,4 @@
-// src/views/OverviewTab.jsx - CORRIGIDO (Redundância de Felicidade Removida)
+// src/views/OverviewTab.jsx - CORRIGIDO (Mostra satisfação real)
 
 import React from 'react';
 import { Users, Briefcase, TrendingUp, Trophy } from 'lucide-react';
@@ -51,7 +51,7 @@ const OverviewTab = ({ nation, finances }) => {
           subtitle={finances.balance >= 0 ? 'Superávit' : 'Déficit'}
         />
         <StatsCard
-          title="Felicidade"
+          title="Felicidade Geral"
           value={`${nation.happiness.toFixed(1)}%`}
           icon={Trophy}
           color={
@@ -69,11 +69,11 @@ const OverviewTab = ({ nation, finances }) => {
         />
       </div>
 
-      {/* Stats indicators - CORRIGIDO: Pesos corretos */}
+      {/* Stats indicators */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold mb-4">Indicadores Nacionais</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Estes indicadores mostram o desenvolvimento geral da nação. A felicidade é calculada com base neles.
+          Estes indicadores mostram o desenvolvimento geral da nação. A felicidade geral é calculada com base neles + déficit de recursos.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
@@ -111,7 +111,7 @@ const OverviewTab = ({ nation, finances }) => {
         </div>
 
         <div className="mt-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
-          <p className="text-sm font-bold text-gray-700 mb-2">📊 Como a Felicidade é Calculada:</p>
+          <p className="text-sm font-bold text-gray-700 mb-2">📊 Como a Felicidade Geral é Calculada:</p>
           <ul className="text-sm text-gray-700 space-y-1">
             <li>• Base: 50%</li>
             <li>• Educação: +{nation.stats.education * 0.2}% (peso 0.2)</li>
@@ -119,12 +119,15 @@ const OverviewTab = ({ nation, finances }) => {
             <li>• Segurança: +{nation.stats.security * 0.1}% (peso 0.1)</li>
             <li>• Alimentação: +{nation.stats.food * 0.2}% (peso 0.2)</li>
             <li>• Cultura: +{(nation.stats.culture || 0) * 0.15}% (peso 0.15)</li>
-            <li>• Penalidades por déficit de recursos são subtraídas</li>
+            <li>• <strong>Déficits de recursos críticos: -15% cada</strong></li>
+            <li>• <strong>Déficits de recursos importantes: -8% cada</strong></li>
+            <li>• <strong>Déficits de recursos de conforto: -2% cada</strong></li>
+            <li className="text-blue-600 font-bold mt-2">• A produção dos cidadãos autônomos É contabilizada!</li>
           </ul>
         </div>
       </div>
 
-      {/* Summary */}
+      {/* Resumo */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold mb-4">Resumo da Nação</h2>
         <div className="space-y-3">
@@ -151,6 +154,20 @@ const OverviewTab = ({ nation, finances }) => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Alerta informativo */}
+      <div className="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded">
+        <h3 className="font-bold text-lg mb-2">💡 Entendendo a Felicidade</h3>
+        <ul className="space-y-2 text-sm text-gray-700">
+          <li>• <strong>Felicidade Geral:</strong> Combina benefícios das benfeitorias + penalidades por falta de recursos</li>
+          <li>• <strong>Indicadores Nacionais:</strong> Mostram apenas os benefícios acumulados das benfeitorias</li>
+          <li>• <strong>A produção dos cidadãos autônomos É considerada</strong> para evitar penalidades por déficit</li>
+          <li>• <strong>Exemplo:</strong> Se você tem déficit de arroz mas cidadãos produzem arroz suficiente, NÃO há penalidade</li>
+          <li>• <strong>Déficits críticos</strong> (água, arroz, feijão, energia) causam -15% cada</li>
+          <li>• <strong>Déficits importantes</strong> (milho, soja, etc) causam -8% cada</li>
+          <li>• Veja detalhes no tab "👥 Cidadãos" e "📦 Recursos"</li>
+        </ul>
       </div>
     </div>
   );

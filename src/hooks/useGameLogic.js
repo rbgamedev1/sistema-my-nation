@@ -1,4 +1,4 @@
-// src/hooks/useGameLogic.js - CORRIGIDO (Auto-upgrade educação)
+// src/hooks/useGameLogic.js - CORRIGIDO
 
 import { useState, useEffect } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -47,7 +47,6 @@ export const useGameLogic = () => {
     }, 5000);
   };
 
-  // NOVO: Função para verificar e atualizar automaticamente o nível de educação
   const checkEducationUpgrade = (facilities) => {
     const schools = facilities.filter(f => 
       f.name.includes('Escola') || 
@@ -240,7 +239,6 @@ export const useGameLogic = () => {
     );
   };
 
-  // ATUALIZADO: Verificar upgrade automático de educação após construção
   const createFacility = (ministryId, facilityData) => {
     if (!nation) return;
 
@@ -287,7 +285,6 @@ export const useGameLogic = () => {
 
     const updatedFacilities = [...nation.facilities, updatedFacility];
     
-    // NOVO: Verificar upgrade automático de educação
     const oldEducationLevel = nation.educationLevel;
     const newEducationLevel = checkEducationUpgrade(updatedFacilities);
 
@@ -300,7 +297,6 @@ export const useGameLogic = () => {
 
     addNotification(`🏗️ ${facilityData.name} construída com sucesso!`, 'success');
 
-    // Notificar se houve upgrade de educação
     if (newEducationLevel !== oldEducationLevel && newEducationLevel !== 'none') {
       const levelNames = {
         basic: 'Básica',
@@ -595,11 +591,13 @@ export const useGameLogic = () => {
       return;
     }
 
-    const { happiness, stats } = calculateHappiness(nation);
+    // CORRIGIDO: Passar citizenSystem para calculateHappiness
+    const { happiness, stats } = calculateHappiness(nation, citizenSystem);
     const populationGrowth = calculatePopulationGrowth(nation.population, happiness);
     const { updatedFacilities, newEmployed } = autoFillJobs(nation);
 
-    const { balance: resourceBalance } = calculateResourceBalance(nation);
+    // CORRIGIDO: Passar citizenSystem para calculateResourceBalance
+    const { balance: resourceBalance } = calculateResourceBalance(nation, citizenSystem);
     const updatedResourceStorage = { ...(nation.resourceStorage || {}) };
     
     Object.entries(resourceBalance).forEach(([resource, amount]) => {

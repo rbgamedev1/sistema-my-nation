@@ -35,7 +35,19 @@ export const calculatePopulationResourceConsumption = (population) => {
   return consumption;
 };
 
-export const calculateResourceBalance = (nation) => {
+// NOVO: Função para obter produção autônoma dos cidadãos
+export const getAutonomousProduction = (citizenSystem) => {
+  if (!citizenSystem || !citizenSystem.autonomousBusinesses) return {};
+  
+  const production = {};
+  for (const business of citizenSystem.autonomousBusinesses) {
+    production[business.product] = (production[business.product] || 0) + business.production;
+  }
+  return production;
+};
+
+// CORRIGIDO: Adicionar produção autônoma ao cálculo
+export const calculateResourceBalance = (nation, citizenSystem = null) => {
   const production = {};
   const consumption = {};
   const balance = {};
@@ -69,7 +81,15 @@ export const calculateResourceBalance = (nation) => {
     });
   }
 
-  // Consumo da população
+  // NOVO: Adicionar produção autônoma explicitamente
+  if (citizenSystem) {
+    const autonomousProduction = getAutonomousProduction(citizenSystem);
+    Object.entries(autonomousProduction).forEach(([resource, amount]) => {
+      production[resource] = (production[resource] || 0) + amount;
+    });
+  }
+
+  // CORRIGIDO: Recalcular consumo da população SEMPRE com a população atual
   const populationConsumption = calculatePopulationResourceConsumption(nation.population);
   Object.entries(populationConsumption).forEach(([resource, amount]) => {
     consumption[resource] = (consumption[resource] || 0) + amount;
@@ -144,7 +164,8 @@ const getResourceCategory = (resource) => {
   return 'other';
 };
 
-export const calculateHappiness = (nation) => {
+// CORRIGIDO: Felicidade agora considera produção autônoma via resourceBalance
+export const calculateHappiness = (nation, citizenSystem = null) => {
   let happiness = 50; // Base
   const stats = { ...nation.stats };
   
@@ -169,16 +190,22 @@ export const calculateHappiness = (nation) => {
   happiness += stats.food * 0.2;        // 20% de peso
   happiness += (stats.culture || 0) * 0.15; // 15% de peso
 
-  // Penalidades por déficit de recursos
-  const { balance: resourceBalance } = calculateResourceBalance(nation);
+  // CORRIGIDO: Passar citizenSystem para incluir produção autônoma
+  const { balance: resourceBalance } = calculateResourceBalance(nation, citizenSystem);
   
+  console.log('[calculateHappiness] Resource Balance:', resourceBalance);
+  
+  // Penalidades por déficit de recursos
   Object.entries(resourceBalance).forEach(([resource, amount]) => {
     if (amount < 0) {
       const category = getResourceCategory(resource);
       const penalty = DEFICIT_PENALTIES[category] || 0;
+      console.log(`[calculateHappiness] Déficit de ${resource} (${category}): ${amount.toFixed(1)}, Penalidade: ${penalty}%`);
       happiness += penalty; // penalty já é negativo
     }
   });
+  
+  console.log(`[calculateHappiness] Felicidade Final: ${happiness.toFixed(1)}%`);
   
   return { 
     happiness: Math.min(100, Math.max(0, happiness)), 
