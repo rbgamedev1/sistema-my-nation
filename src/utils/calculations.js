@@ -1,4 +1,4 @@
-// src/utils/calculations.js - CORRIGIDO
+// src/utils/calculations.js - CORRIGIDO (Exportando função que faltava)
 
 import { GAME_CONFIG, RESOURCE_CATEGORIES, DEFICIT_PENALTIES } from '../data/gameConfig';
 
@@ -25,6 +25,7 @@ export const generateTerritory = () => {
   return { x, y, size: Math.floor(Math.random() * 50) + 50, resources };
 };
 
+// CORRIGIDO: Exportada a função que estava faltando
 export const calculatePopulationResourceConsumption = (population) => {
   const consumption = {};
   
@@ -35,7 +36,7 @@ export const calculatePopulationResourceConsumption = (population) => {
   return consumption;
 };
 
-// NOVO: Função para obter produção autônoma dos cidadãos
+// Função para obter produção autônoma dos cidadãos
 export const getAutonomousProduction = (citizenSystem) => {
   if (!citizenSystem || !citizenSystem.autonomousBusinesses) return {};
   

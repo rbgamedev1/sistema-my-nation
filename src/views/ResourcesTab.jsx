@@ -1,7 +1,7 @@
-// src/views/ResourcesTab.jsx - TRADUZIDO PARA PORTUGUÊS
+// src/views/ResourcesTab.jsx - CORRIGIDO (Imports corretos)
 
 import React from 'react';
-import { calculateResourceBalance } from '../utils/calculations';
+import { calculateResourceBalance, calculatePopulationResourceConsumption } from '../utils/calculations';
 import { GAME_CONFIG, RESOURCE_NAMES, RESOURCE_ICONS, RESOURCE_CATEGORIES, DEFICIT_PENALTIES } from '../data/gameConfig';
 
 const ResourcesTab = ({ nation }) => {
@@ -34,7 +34,8 @@ const ResourcesTab = ({ nation }) => {
     </svg>
   );
 
-  const { production, consumption, balance, populationConsumption } = calculateResourceBalance(nation);
+  const { production, consumption, balance } = calculateResourceBalance(nation);
+  const populationConsumption = calculatePopulationResourceConsumption(nation.population);
 
   const getResourceCategory = (resource) => {
     for (const [category, resources] of Object.entries(RESOURCE_CATEGORIES)) {

@@ -1,4 +1,4 @@
-// src/hooks/useGameLogic.js - CORRIGIDO
+// src/hooks/useGameLogic.js - CORRIGIDO COMPLETO
 
 import { useState, useEffect } from 'react';
 import { GAME_CONFIG } from '../data/gameConfig';
@@ -9,7 +9,8 @@ import {
   calculateHappiness,
   calculatePopulationGrowth,
   autoFillJobs,
-  calculateResourceBalance
+  calculateResourceBalance,
+  calculatePopulationResourceConsumption
 } from '../utils/calculations';
 import { 
   TECHNOLOGIES, 
@@ -507,6 +508,11 @@ export const useGameLogic = () => {
     );
   };
 
+  const upgradeEducation = (level) => {
+    // Função mantida por compatibilidade, mas educação é atualizada automaticamente
+    addNotification('A educação é atualizada automaticamente ao construir escolas!', 'info');
+  };
+
   const approveBusinessExpansion = (businessId) => {
     if (!nation || !citizenSystem) return;
 
@@ -591,278 +597,283 @@ export const useGameLogic = () => {
 
     console.log('[nextTurn] ========== INÍCIO DO TURNO ==========');
 
-    const finances = calculateFinances(nation);
-    
-    const balanceValue = isNaN(finances.balance) ? 0 : finances.balance;
-    
-    if (balanceValue < 0 && nation.treasury + balanceValue < 0) {
-      addNotification(
-        '🚨 ALERTA: Tesouro insuficiente para pagar despesas mensais! Ajuste suas finanças!',
-        'error'
-      );
-      return;
-    }
-
-    // CORRIGIDO: Passar citizenSystem para calculateHappiness
-    const { happiness, stats } = calculateHappiness(nation, citizenSystem);
-    const populationGrowth = calculatePopulationGrowth(nation.population, happiness);
-    const { updatedFacilities, newEmployed } = autoFillJobs(nation);
-
-    // CORRIGIDO: Passar citizenSystem para calculateResourceBalance
-    const { balance: resourceBalance } = calculateResourceBalance(nation, citizenSystem);
-    const updatedResourceStorage = { ...(nation.resourceStorage || {}) };
-    
-    // CORRIGIDO: Apenas recursos do governo vão para estoque
-    Object.entries(resourceBalance).forEach(([resource, amount]) => {
-      if (amount > 0) {
-        // Calcular produção do governo (sem cidadãos)
-        let govProduction = 0;
-        
-        // Produção do território
-        if (nation.territory?.resources?.[resource]) {
-          govProduction += nation.territory.resources[resource];
-        }
-        
-        // Produção das benfeitorias do governo
-        nation.facilities.forEach(facility => {
-          if (facility.resourceProduction?.[resource]) {
-            govProduction += facility.resourceProduction[resource];
-          }
-        });
-        
-        // Consumo total
-        const consumption = calculatePopulationResourceConsumption(nation.population)[resource] || 0;
-        const infraConsumption = nation.facilities.reduce((sum, f) => {
-          return sum + (f.resourceConsumption?.[resource] || 0);
-        }, 0);
-        const totalConsumption = consumption + infraConsumption;
-        
-        // Apenas o excedente do governo vai para estoque (50%)
-        const govBalance = govProduction - totalConsumption;
-        if (govBalance > 0) {
-          updatedResourceStorage[resource] = (updatedResourceStorage[resource] || 0) + (govBalance * 0.5);
-          console.log(`[nextTurn] Recurso ${resource}: Produção gov=${govProduction}, Consumo=${totalConsumption}, Excedente gov=${govBalance}, Armazenado=${govBalance * 0.5}`);
-        }
-      }
-    });
-
-    let completedResearches = [];
-    const updatedResearching = (nation.technologies?.researching || []).map(research => {
-      const newProgress = research.progress + 1;
+    try {
+      const finances = calculateFinances(nation);
       
-      if (newProgress >= research.total) {
-        completedResearches.push(research.id);
-        return null;
-      }
+      const balanceValue = isNaN(finances.balance) ? 0 : finances.balance;
       
-      return { ...research, progress: newProgress };
-    }).filter(Boolean);
-
-    let citizenResults = null;
-    if (citizenSystem && nation.educationLevel !== 'none') {
-      console.log('[nextTurn] Processando turno de cidadãos...');
-      citizenResults = citizenSystem.processTurn(nation);
-      console.log('[nextTurn] Resultados:', citizenResults);
-      
-      if (citizenResults.expansionOpportunities && citizenResults.expansionOpportunities.length > 0) {
-        console.log('[nextTurn] Processando expansões automáticas...');
-        citizenResults.expansionOpportunities.forEach(({ business, expansion, owner }) => {
-          if (owner && owner.wealth >= expansion.expansionCost) {
-            const result = citizenSystem.approveExpansion(expansion, nation);
-            if (result.success) {
-              addNotification(
-                `🚀 ${owner.name} expandiu seu negócio automaticamente! +${expansion.newEmployees} funcionários`,
-                'success'
-              );
-            }
-          }
-        });
-      }
-    }
-
-    let satisfactionReport = null;
-    let satisfactionEffects = { productivity: 1.0, taxCompliance: 1.0, growth: 1.0 };
-    if (populationNeeds) {
-      const autonomousProduction = getAutonomousProduction();
-      
-      const totalResources = { ...nation.resources };
-      Object.entries(nation.resourceStorage || {}).forEach(([resource, amount]) => {
-        totalResources[resource] = (totalResources[resource] || 0) + amount;
-      });
-      
-      satisfactionReport = populationNeeds.generateReport(
-        nation.population,
-        totalResources,
-        autonomousProduction,
-        nation.educationLevel,
-        nation.economicStatus
-      );
-      satisfactionEffects = satisfactionReport.effects;
-    }
-
-    const adjustedBalance = isNaN(balanceValue) ? 0 : balanceValue * satisfactionEffects.taxCompliance;
-    const adjustedGrowth = Math.floor(populationGrowth * satisfactionEffects.growth);
-
-    const updatedProduction = { ...nation.production };
-    if (citizenResults && citizenResults.productionAdded) {
-      Object.entries(citizenResults.productionAdded).forEach(([product, amount]) => {
-        updatedProduction[product] = (updatedProduction[product] || 0) + amount;
-      });
-    }
-
-    setNation(prev => ({
-      ...prev,
-      currentMonth: prev.currentMonth + 1,
-      treasury: Math.max(0, prev.treasury + adjustedBalance + (citizenResults?.taxRevenue || 0)),
-      population: prev.population + adjustedGrowth,
-      happiness,
-      stats,
-      facilities: updatedFacilities,
-      resourceStorage: updatedResourceStorage,
-      workers: {
-        common: prev.workers.common + adjustedGrowth,
-        employed: newEmployed + (citizenResults?.totalJobs || 0)
-      },
-      technologies: {
-        ...prev.technologies,
-        researching: updatedResearching
-      },
-      production: updatedProduction
-    }));
-
-    completedResearches.forEach(techId => {
-      setTimeout(() => completeResearch(techId), 500);
-    });
-
-    const newMonth = nation.currentMonth + 1;
-    
-    addNotification(
-      `📅 Mês ${newMonth}: Balanço ${adjustedBalance >= 0 ? '+' : ''}R$ ${Math.floor(adjustedBalance).toLocaleString()}`,
-      adjustedBalance >= 0 ? 'success' : 'warning'
-    );
-
-    if (citizenResults && citizenResults.taxRevenue > 0) {
-      addNotification(
-        `💼 Impostos de negócios autônomos: +R$ ${citizenResults.taxRevenue.toLocaleString()}`,
-        'success'
-      );
-    }
-
-    if (citizenResults && citizenResults.events.length > 0) {
-      citizenResults.events.forEach(event => {
-        if (event.type === 'citizen_business_created') {
-          addNotification(
-            `🌾 Novo Negócio! ${event.citizen.name} criou uma plantação de ${event.business.productName}`,
-            'success'
-          );
-          addNotification(
-            `💼 +${event.benefits.jobs} empregos | +R$ ${event.benefits.monthlyTax}/mês em impostos`,
-            'info'
-          );
-        }
-      });
-    }
-
-    if (satisfactionReport) {
-      const satisfaction = satisfactionReport.satisfaction.overallSatisfaction;
-      
-      if (satisfaction < 30) {
+      if (balanceValue < 0 && nation.treasury + balanceValue < 0) {
         addNotification(
-          `😢 Satisfação crítica (${satisfaction}%)! População está descontente com falta de alimentos!`,
+          '🚨 ALERTA: Tesouro insuficiente para pagar despesas mensais! Ajuste suas finanças!',
           'error'
         );
-      } else if (satisfaction < 50) {
-        addNotification(
-          `😐 Satisfação baixa (${satisfaction}%). Melhore o fornecimento de alimentos básicos.`,
-          'warning'
+        return;
+      }
+
+      // CORRIGIDO: Passar citizenSystem para calculateHappiness
+      const { happiness, stats } = calculateHappiness(nation, citizenSystem);
+      const populationGrowth = calculatePopulationGrowth(nation.population, happiness);
+      const { updatedFacilities, newEmployed } = autoFillJobs(nation);
+
+      // CORRIGIDO: Passar citizenSystem para calculateResourceBalance
+      const { balance: resourceBalance } = calculateResourceBalance(nation, citizenSystem);
+      const updatedResourceStorage = { ...(nation.resourceStorage || {}) };
+      
+      // CORRIGIDO: Apenas recursos do governo vão para estoque
+      Object.entries(resourceBalance).forEach(([resource, amount]) => {
+        if (amount > 0) {
+          // Calcular produção do governo (sem cidadãos)
+          let govProduction = 0;
+          
+          // Produção do território
+          if (nation.territory?.resources?.[resource]) {
+            govProduction += nation.territory.resources[resource];
+          }
+          
+          // Produção das benfeitorias do governo
+          nation.facilities.forEach(facility => {
+            if (facility.resourceProduction?.[resource]) {
+              govProduction += facility.resourceProduction[resource];
+            }
+          });
+          
+          // Consumo total
+          const consumption = calculatePopulationResourceConsumption(nation.population)[resource] || 0;
+          const infraConsumption = nation.facilities.reduce((sum, f) => {
+            return sum + (f.resourceConsumption?.[resource] || 0);
+          }, 0);
+          const totalConsumption = consumption + infraConsumption;
+          
+          // Apenas o excedente do governo vai para estoque (50%)
+          const govBalance = govProduction - totalConsumption;
+          if (govBalance > 0) {
+            updatedResourceStorage[resource] = (updatedResourceStorage[resource] || 0) + (govBalance * 0.5);
+            console.log(`[nextTurn] Recurso ${resource}: Produção gov=${govProduction}, Consumo=${totalConsumption}, Excedente gov=${govBalance}, Armazenado=${govBalance * 0.5}`);
+          }
+        }
+      });
+
+      let completedResearches = [];
+      const updatedResearching = (nation.technologies?.researching || []).map(research => {
+        const newProgress = research.progress + 1;
+        
+        if (newProgress >= research.total) {
+          completedResearches.push(research.id);
+          return null;
+        }
+        
+        return { ...research, progress: newProgress };
+      }).filter(Boolean);
+
+      let citizenResults = null;
+      if (citizenSystem && nation.educationLevel !== 'none') {
+        console.log('[nextTurn] Processando turno de cidadãos...');
+        citizenResults = citizenSystem.processTurn(nation);
+        console.log('[nextTurn] Resultados:', citizenResults);
+        
+        if (citizenResults.expansionOpportunities && citizenResults.expansionOpportunities.length > 0) {
+          console.log('[nextTurn] Processando expansões automáticas...');
+          citizenResults.expansionOpportunities.forEach(({ business, expansion, owner }) => {
+            if (owner && owner.wealth >= expansion.expansionCost) {
+              const result = citizenSystem.approveExpansion(expansion, nation);
+              if (result.success) {
+                addNotification(
+                  `🚀 ${owner.name} expandiu seu negócio automaticamente! +${expansion.newEmployees} funcionários`,
+                  'success'
+                );
+              }
+            }
+          });
+        }
+      }
+
+      let satisfactionReport = null;
+      let satisfactionEffects = { productivity: 1.0, taxCompliance: 1.0, growth: 1.0 };
+      if (populationNeeds) {
+        const autonomousProduction = getAutonomousProduction();
+        
+        const totalResources = { ...nation.resources };
+        Object.entries(nation.resourceStorage || {}).forEach(([resource, amount]) => {
+          totalResources[resource] = (totalResources[resource] || 0) + amount;
+        });
+        
+        satisfactionReport = populationNeeds.generateReport(
+          nation.population,
+          totalResources,
+          autonomousProduction,
+          nation.educationLevel,
+          nation.economicStatus
         );
-      } else if (satisfaction >= 90) {
+        satisfactionEffects = satisfactionReport.effects;
+      }
+
+      const adjustedBalance = isNaN(balanceValue) ? 0 : balanceValue * satisfactionEffects.taxCompliance;
+      const adjustedGrowth = Math.floor(populationGrowth * satisfactionEffects.growth);
+
+      const updatedProduction = { ...nation.production };
+      if (citizenResults && citizenResults.productionAdded) {
+        Object.entries(citizenResults.productionAdded).forEach(([product, amount]) => {
+          updatedProduction[product] = (updatedProduction[product] || 0) + amount;
+        });
+      }
+
+      setNation(prev => ({
+        ...prev,
+        currentMonth: prev.currentMonth + 1,
+        treasury: Math.max(0, prev.treasury + adjustedBalance + (citizenResults?.taxRevenue || 0)),
+        population: prev.population + adjustedGrowth,
+        happiness,
+        stats,
+        facilities: updatedFacilities,
+        resourceStorage: updatedResourceStorage,
+        workers: {
+          common: prev.workers.common + adjustedGrowth,
+          employed: newEmployed + (citizenResults?.totalJobs || 0)
+        },
+        technologies: {
+          ...prev.technologies,
+          researching: updatedResearching
+        },
+        production: updatedProduction
+      }));
+
+      completedResearches.forEach(techId => {
+        setTimeout(() => completeResearch(techId), 500);
+      });
+
+      const newMonth = nation.currentMonth + 1;
+      
+      addNotification(
+        `📅 Mês ${newMonth}: Balanço ${adjustedBalance >= 0 ? '+' : ''}R$ ${Math.floor(adjustedBalance).toLocaleString()}`,
+        adjustedBalance >= 0 ? 'success' : 'warning'
+      );
+
+      if (citizenResults && citizenResults.taxRevenue > 0) {
         addNotification(
-          `😊 População muito satisfeita (${satisfaction}%)! Excelente fornecimento de recursos!`,
+          `💼 Impostos de negócios autônomos: +R$ ${citizenResults.taxRevenue.toLocaleString()}`,
           'success'
         );
       }
 
-      if (satisfactionReport.satisfaction.criticalShortages.length > 0) {
-        const shortage = satisfactionReport.satisfaction.criticalShortages[0];
-        addNotification(
-          `⚠️ Escassez crítica de ${shortage.item}! Aumente a produção urgentemente!`,
-          'error'
-        );
+      if (citizenResults && citizenResults.events.length > 0) {
+        citizenResults.events.forEach(event => {
+          if (event.type === 'citizen_business_created') {
+            addNotification(
+              `🌾 Novo Negócio! ${event.citizen.name} criou uma plantação de ${event.business.productName}`,
+              'success'
+            );
+            addNotification(
+              `💼 +${event.benefits.jobs} empregos | +R$ ${event.benefits.monthlyTax}/mês em impostos`,
+              'info'
+            );
+          }
+        });
       }
-    }
 
-    if (adjustedGrowth > 0) {
-      addNotification(
-        `👥 População cresceu em ${adjustedGrowth.toLocaleString()} habitantes!`,
-        'info'
-      );
-    } else if (adjustedGrowth < 0) {
-      addNotification(
-        `⚠️ População diminuiu em ${Math.abs(adjustedGrowth).toLocaleString()} habitantes!`,
-        'warning'
-      );
-    }
-
-    if (completedResearches.length > 0) {
-      addNotification(
-        `🔬 ${completedResearches.length} pesquisa(s) concluída(s) este mês!`,
-        'success'
-      );
-    }
-
-    if (happiness < GAME_CONFIG.HAPPINESS_THRESHOLD.POOR) {
-      addNotification(
-        '😢 Felicidade muito baixa! Construa benfeitorias de saúde e educação!',
-        'warning'
-      );
-    }
-
-    if (happiness >= GAME_CONFIG.HAPPINESS_THRESHOLD.EXCELLENT) {
-      addNotification(
-        '😊 População extremamente feliz! Ótimo trabalho!',
-        'success'
-      );
-    }
-
-    const totalEmployed = newEmployed + (citizenResults?.totalJobs || 0);
-    const employmentRate = totalEmployed / nation.population;
-    
-    if (employmentRate < 0.1) {
-      addNotification(
-        '💼 Alto desemprego! Crie mais vagas de emprego construindo benfeitorias!',
-        'info'
-      );
-    }
-
-    if (employmentRate > 0.5) {
-      addNotification(
-        '👔 Ótima taxa de emprego! Sua economia está crescendo!',
-        'success'
-      );
-    }
-
-    if (nation.treasury < 1000000) {
-      addNotification(
-        '⚠️ Tesouro baixo! Cuidado com gastos excessivos!',
-        'warning'
-      );
-    }
-
-    if (updatedResearching.length > 0) {
-      updatedResearching.forEach(r => {
-        const remaining = r.total - r.progress;
-        if (remaining === 1) {
-          const tech = TECHNOLOGIES[r.id];
+      if (satisfactionReport) {
+        const satisfaction = satisfactionReport.satisfaction.overallSatisfaction;
+        
+        if (satisfaction < 30) {
           addNotification(
-            `🔬 ${tech.name} será concluída no próximo mês!`,
-            'info'
+            `😢 Satisfação crítica (${satisfaction}%)! População está descontente com falta de alimentos!`,
+            'error'
+          );
+        } else if (satisfaction < 50) {
+          addNotification(
+            `😐 Satisfação baixa (${satisfaction}%). Melhore o fornecimento de alimentos básicos.`,
+            'warning'
+          );
+        } else if (satisfaction >= 90) {
+          addNotification(
+            `😊 População muito satisfeita (${satisfaction}%)! Excelente fornecimento de recursos!`,
+            'success'
           );
         }
-      });
-    }
 
-    console.log('[nextTurn] ========== FIM DO TURNO ==========');
+        if (satisfactionReport.satisfaction.criticalShortages.length > 0) {
+          const shortage = satisfactionReport.satisfaction.criticalShortages[0];
+          addNotification(
+            `⚠️ Escassez crítica de ${shortage.item}! Aumente a produção urgentemente!`,
+            'error'
+          );
+        }
+      }
+
+      if (adjustedGrowth > 0) {
+        addNotification(
+          `👥 População cresceu em ${adjustedGrowth.toLocaleString()} habitantes!`,
+          'info'
+        );
+      } else if (adjustedGrowth < 0) {
+        addNotification(
+          `⚠️ População diminuiu em ${Math.abs(adjustedGrowth).toLocaleString()} habitantes!`,
+          'warning'
+        );
+      }
+
+      if (completedResearches.length > 0) {
+        addNotification(
+          `🔬 ${completedResearches.length} pesquisa(s) concluída(s) este mês!`,
+          'success'
+        );
+      }
+
+      if (happiness < GAME_CONFIG.HAPPINESS_THRESHOLD.POOR) {
+        addNotification(
+          '😢 Felicidade muito baixa! Construa benfeitorias de saúde e educação!',
+          'warning'
+        );
+      }
+
+      if (happiness >= GAME_CONFIG.HAPPINESS_THRESHOLD.EXCELLENT) {
+        addNotification(
+          '😊 População extremamente feliz! Ótimo trabalho!',
+          'success'
+        );
+      }
+
+      const totalEmployed = newEmployed + (citizenResults?.totalJobs || 0);
+      const employmentRate = totalEmployed / nation.population;
+      
+      if (employmentRate < 0.1) {
+        addNotification(
+          '💼 Alto desemprego! Crie mais vagas de emprego construindo benfeitorias!',
+          'info'
+        );
+      }
+
+      if (employmentRate > 0.5) {
+        addNotification(
+          '👔 Ótima taxa de emprego! Sua economia está crescendo!',
+          'success'
+        );
+      }
+
+      if (nation.treasury < 1000000) {
+        addNotification(
+          '⚠️ Tesouro baixo! Cuidado com gastos excessivos!',
+          'warning'
+        );
+      }
+
+      if (updatedResearching.length > 0) {
+        updatedResearching.forEach(r => {
+          const remaining = r.total - r.progress;
+          if (remaining === 1) {
+            const tech = TECHNOLOGIES[r.id];
+            addNotification(
+              `🔬 ${tech.name} será concluída no próximo mês!`,
+              'info'
+            );
+          }
+        });
+      }
+
+      console.log('[nextTurn] ========== FIM DO TURNO ==========');
+    } catch (error) {
+      console.error('[nextTurn] ERRO:', error);
+      addNotification('❌ Erro ao processar turno: ' + error.message, 'error');
+    }
   };
 
   return {
@@ -881,6 +892,7 @@ export const useGameLogic = () => {
     completeResearch,
     addNotification,
     exportResource,
+    upgradeEducation,
     approveBusinessExpansion,
     destroyCitizenBusiness,
     getAutonomousProduction,

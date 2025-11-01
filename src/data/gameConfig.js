@@ -1,4 +1,4 @@
-// src/data/gameConfig.js - CORRIGIDO (Removido terrasAraveis)
+// src/data/gameConfig.js - CORRIGIDO (Adicionado RESOURCE_ICONS)
 
 export const GAME_CONFIG = {
   INITIAL_POPULATION: 1000,
@@ -58,7 +58,6 @@ export const GAME_CONFIG = {
     RESEARCH_COST_MULTIPLIER: 1.0
   },
   
-  // ATUALIZADO: Removido custos, apenas requisitos de escolas
   EDUCATION: {
     SCHOOL_REQUIREMENTS: {
       basic: 1,
@@ -122,6 +121,52 @@ export const RESOURCE_NAMES = {
   culture: 'Cultura'
 };
 
+// NOVO: Ícones de recursos
+export const RESOURCE_ICONS = {
+  agua: '💧',
+  petroleo: '🛢️',
+  gas: '💨',
+  ferro: '⚙️',
+  ouro: '🏆',
+  cobre: '🔶',
+  energy: '⚡',
+  fuel: '⛽',
+  madeira: '🪵',
+  furniture: '🪑',
+  clothing: '👕',
+  medicine: '💊',
+  floresta: '🌲',
+  
+  // Alimentos
+  food: '🍞',
+  fruits: '🍎',
+  vegetables: '🥕',
+  
+  // Grãos
+  rice: '🍚',
+  beans: '🫘',
+  corn: '🌽',
+  sugar: '🍬',
+  soy: '🫛',
+  
+  // Bebidas
+  coffee: '☕',
+  
+  // Frutas
+  banana: '🍌',
+  orange: '🍊',
+  apple: '🍎',
+  lemon: '🍋',
+  
+  // Especiarias
+  spices: '🌶️',
+  
+  // Abstratos
+  education: '📚',
+  health: '🏥',
+  culture: '🎭'
+};
+
 // Categorias de recursos
 export const RESOURCE_CATEGORIES = {
   critical: ['agua', 'rice', 'beans', 'energy'],
@@ -133,9 +178,9 @@ export const RESOURCE_CATEGORIES = {
 
 // Penalidades por déficit
 export const DEFICIT_PENALTIES = {
-  critical: -12,
-  important: -5,
+  critical: -15,
+  important: -8,
   comfort: -2,
-  health: -8,
+  health: -10,
   industrial: 0
 };
